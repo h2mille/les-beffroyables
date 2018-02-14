@@ -1,0 +1,10 @@
+wheel_distance = 180
+left_wheel_diameter = 62
+right_wheel_diameter = -62
+dotperturn = 5600
+
+period = 10000
+
+pastille_angle_depart = 1
+pastille_distance     = 5
+pastille_angle_fin    = 1
