@@ -2,7 +2,7 @@
 #define PARAMETER_H
 #include <stdint.h>
 
-
+//#define USE_GYRO
 class parameter{
     public:
         parameter();

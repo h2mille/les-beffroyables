@@ -5,7 +5,9 @@ using namespace std;
 #include "parameter.h"
 #include "types.h"
 
-
+#ifdef USE_GYRO
+rc_imu_data_t data;
+#endif
 
 int prev_L =0;
 int prev_R =0;
@@ -20,8 +22,18 @@ void encoder::get_move(coordinates_t* coordinates_move,coordinates_t* speed_coor
 	prev_R = rc_get_encoder_pos(right_t+1);
 	float L_mm = (robot_parameter.left_wheel_diameter()  *L * PI )/ robot_parameter.dotperturn();
 	float R_mm = (robot_parameter.right_wheel_diameter() *R * PI )/ robot_parameter.dotperturn();
+#ifdef USE_GYRO
+
+	
+	rc_imu_data_t data; //struct to hold new data
+	rc_read_gyro_data(&data);
+	printf("GYRO %6.6f",data.gyro[2]);
+	coordinates_move->theta = (-data.gyro[2]*90)-0.0008;
+	coordinates_move->theta *=((float)robot_parameter.period()/1000000);
+#else
 
 	coordinates_move->theta = (R_mm - L_mm)/robot_parameter.wheel_distance();
+#endif
 	coordinates_move->x = ((L_mm + R_mm)/2) * sin(coordinates_move->theta);
 	coordinates_move->y = ((L_mm + R_mm)/2) * cos(coordinates_move->theta);
 	speed_coordinates->x     = (coordinates_move->x     * 1000000/(float)robot_parameter.period());

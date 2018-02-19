@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include "encoder.h"
 
+
 using namespace std;
+
 
 Position position;
 
@@ -69,7 +71,7 @@ uint8_t Position::update_theta(float new_coordinate){
 }
 
 void Position::print_coordinates(){
-	printf("Position: %f, %f, %f Speed : %f %f",coordinates.x,coordinates.y,coordinates.theta,speed_v[left_t],speed_v[right_t]);
+	printf("Position: %f, %f, %f Speed : %f %f",coordinates.x,coordinates.y,coordinates.theta*RAD_TO_DEG,speed_v[left_t],speed_v[right_t]);
 }
 
 void Position::Update_coordinates(){

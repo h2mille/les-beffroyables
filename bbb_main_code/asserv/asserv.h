@@ -1,7 +1,8 @@
 #ifndef ASSERV_H
 #define ASSERV_H
 
-#include <vector>
+#include <queue>
+#include <stack>
 using namespace std;
 
 extern Position position;
@@ -14,7 +15,7 @@ typedef struct{
 }move_t;
 
 typedef enum{
-	asserv_vector,
+	asserv_queue,
 	asserv_xy,
 	asserv_theta,
 	asserv_no
@@ -31,11 +32,14 @@ class Asserv{
 	void asserv_init();
 	void go_destination(float x, float y, float theta);
 	void go_angle(float theta);
-	// void go_destination(vector<move_t> move_table);
+	void go_destination();
 	void add_coordinate(coordinates_t* end,coordinates_t origin, coordinates_t next);
 	void set_asserv_mode(asserv_type_t asserv);
 	void set_arrived(bool isit);
-	void add_move(vector<move_t> move_table,float x, float y, float theta);
+	void add_move(float x, float y, float theta);
+	void get_next_move(coordinates_t* position, float* dist);
+	void go_next();
+	void clean_move();
 
 	asserv_type_t get_asserv_mode();
 	bool is_arrived();
@@ -45,6 +49,9 @@ class Asserv{
 
 	asserv_type_t asserv_mode;
 	bool arrived;
+	
+	queue<coordinates_t> dest_list;
+	stack<float> dist_list;
 
 	
 	pthread_t position_thread;

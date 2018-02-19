@@ -16,6 +16,9 @@ using namespace std;
 #include "types.h"
 
 Asserv asserv;
+#define couleur(param) printf("\033[%sm",param)
+
+
 
 asserv_type_t Asserv::get_asserv_mode(){
 	return asserv_mode;
@@ -37,8 +40,8 @@ void Asserv::set_arrived(bool isit){
 static void *position_computation(void *arg){ 
 	while(rc_get_state() != EXITING){
 		 position.Update_coordinates();
-		 printf("\r");
-		 position.print_coordinates();
+//		 printf("\r");
+//		 position.print_coordinates();
 		fflush(stdout);
 		rc_usleep(robot_parameter.period());
 
@@ -48,44 +51,68 @@ static void *position_computation(void *arg){
 }
 
 static void *control_wheels(void *arg){
+FILE *f ;
 	while(rc_get_state() != EXITING){
 		float dist;
 		float ratio;
+		couleur("34");
 		switch(asserv.get_asserv_mode())
 		{
-			case(asserv_vector):
-				control.distance_arc(position.get_coordinates(),control.get_destination(),&dist,&ratio);
-				printf("distance %f %f",dist,ratio);
-				if(dist*dist <5	)
+			case(asserv_queue):
+			    coordinates_t pos;
+				float dist_left;
+				
+				
+			    asserv.get_next_move(&pos,&dist_left);
+				control.distance_arc(position.get_coordinates(),pos,&dist,&ratio,force_frontward);
+				printf("\r\ndistance %f %f\r\n",dist+dist_left,ratio);
+				printf("%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
+
+				f=fopen("log.csv", "a");
+				fprintf(f, "%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
+				fclose(f);
+
+				if((dist)*(dist) <125	)
 				{
-					asserv.set_arrived(true);
-					printf("next spot\r\n");
-					asserv.set_asserv_mode(asserv_no);
+					if((dist+dist_left)*(dist+dist_left)<2)
+					{
+						f=fopen("log.csv", "a");
+						fprintf(f, "arrived!\n");
+						fclose(f);
+						asserv.set_arrived(true);
+						printf("end trip\r\n");
+						asserv.set_asserv_mode(asserv_no);
+					}
+					else
+					{
+						f=fopen("log.csv", "a");
+						fprintf(f, "next spot!\n");
+						fclose(f);
+						couleur("31");
+						printf("\r\nnext spot\r\n");
+						asserv.go_next();
+					}
 				}
-				printf("asserv_vector %d");
-//				control.robot_go_distance(dist + left_distance,ratio);
+				printf("\r\nasserv_vector\r\n");
+				couleur("0");
+				control.robot_go_distance(dist + dist_left,ratio);
 				control.run_wheel(left_t);
 				control.run_wheel(right_t);
+				break;
 			case(asserv_xy):
 
-				control.distance_arc(position.get_coordinates(),control.get_destination(),&dist,&ratio);
+				control.distance_arc(position.get_coordinates(),control.get_destination(),&dist,&ratio,asserv_any_dir);
 				printf("distanceXY %f %f  ",dist,ratio);
-				if(dist*dist <0.1 
-				// &&	pow(position.speed(left_t),2)<0.1 
-				// &&	pow(position.speed(right_t),2)<0.1 
-				)
+				if(dist*dist <0.4)
 				{
 					printf("exit  asserv_xy, dist = %f\r\n",dist);
 					asserv.set_asserv_mode(asserv_theta);
-//					asserv.set_asserv_mode(asserv_no);
 				}
+				couleur("0");
 				control.robot_go_distance(dist,ratio);
-			
-
-				printf("asserv_vector %d");
 				control.run_wheel(left_t);
 				control.run_wheel(right_t);
-			break;
+				break;
 			case(asserv_theta):
 				control.go_angle();
 				printf("asserv_theta %d");
@@ -95,17 +122,19 @@ static void *control_wheels(void *arg){
 					{
 						asserv.set_arrived(true);
 					}
-			break;
+				break;
 			case(asserv_no):
 				asserv.set_arrived(true);
 				control.set_speed(left_t, 0);
 				control.set_speed(right_t, 0);
 				printf("asserv_no %d");
+				couleur("0");
 				control.run_wheel(left_t);
 				control.run_wheel(right_t);
-			break;
+				break;
 		}
-				rc_usleep(robot_parameter.period());
+		
+		rc_usleep(robot_parameter.period());
 	}
 	pthread_exit(NULL);
 		
@@ -130,41 +159,75 @@ void Asserv::go_angle(float theta){
 	while(arrived == false && rc_get_state() != EXITING)
 		rc_usleep(robot_parameter.period());
 }
-// void Asserv::go_destination(vector<move_t> move_table){
-	// control.set_destination(move_table[0].position);
-	// asserv_mode = asserv_vector;
-	// arrived = false;
-	// while(move_table.size()!=0 && rc_get_state() != EXITING)
-	// {
-		// rc_usleep(robot_parameter.period());
-		// if(arrived==true)
-	// }
-// }
-void Asserv::add_move(vector<move_t> move_table,float x, float y, float theta){
-	move_t move;
-	move.position.x = x;
-	move.position.y = y;
-	move.position.theta = theta;
+ void Asserv::go_destination(){
+	 control.set_destination(dest_list.front());
+	 asserv_mode = asserv_queue;
+	 arrived = false;
+	 while(arrived==false && rc_get_state() != EXITING)
+	 {
+		 rc_usleep(robot_parameter.period());
+
+	 }
+ }
+void Asserv::add_move(float x, float y, float theta){
+	coordinates_t move;
+	move.x = x;
+	move.y = y;
+	move.theta = theta;
 	float dist,ratio;
-	if(move_table.size()>0)
+	if(dest_list.size()>0)
 	{
-		control.distance_arc(move_table[move_table.size()-1].position,move.position,&dist,&ratio);
-		dist+=move_table[move_table.size()-1].distance;
+		control.distance_arc(dest_list.front(),move,&dist,&ratio,force_frontward);
+		dist+=dist_list.top();
 	}
 	else
-		control.distance_arc(position.get_coordinates(),move.position,&dist,&ratio);
-	move.distance= dist;
-	move_table.push_back(move);
+	{
+		control.distance_arc(position.get_coordinates(),move,&dist,&ratio,force_frontward);
+		dist=0;
+	}
+	dist_list.push(dist);
+	dest_list.push(move);
 }
+void Asserv::get_next_move(coordinates_t* pos, float* dist){
+	if (dest_list.empty())
+	{
+		pos->x = position.get_coordinates().x;
+		pos->y = position.get_coordinates().y;
+		pos->theta = position.get_coordinates().theta;
+		*dist=0;
+	}
+	else
+	{
+		pos->x = dest_list.front().x;
+		pos->y = dest_list.front().y;
+		pos->theta = dest_list.front().theta;
+		*dist=dist_list.top();
+	}
+    return;
+}
+void Asserv::go_next(){
+	if (!dest_list.empty())
+		dest_list.pop();
+	if (!dist_list.empty())
+		dist_list.pop();
+	return;
+}
+void Asserv::clean_move(){
+	while(!dest_list.empty())
+		dest_list.pop();
+	while(!dist_list.empty())
+		dist_list.pop();
+
+}
+
 void Asserv::add_coordinate(coordinates_t* end,coordinates_t origin, coordinates_t next)
 {
-	printf("add_ccordinates %f %f %f, %f %f %f, %f %f %f\r\n", end->x,end->y,end->theta, origin.x,origin.y,origin.theta,next.x,next.y,next.theta);
     end->x= origin.x - next.x*sin(origin.theta)+next.y*cos(origin.theta);
     end->y= origin.y + next.x*cos(origin.theta)+next.y*sin(origin.theta);
     end->theta= origin.theta + next.theta;
-	printf("add_ccordinates %f %f %f, %f %f %f, %f %f %f\r\n", end->x,end->y,end->theta, origin.x,origin.y,origin.theta,next.x,next.y,next.theta);
 
 }
+
 Asserv::Asserv(){
 	asserv_mode = asserv_no;
 }

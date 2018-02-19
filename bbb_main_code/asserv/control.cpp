@@ -82,7 +82,6 @@ void Control::go_angle(){
 	if(-speed_limit>speed_limit)
 		wheel_speed=-speed_limit;
 
-	printf("angle : %f %f %f %f", delta_angle, real_rotation_speed, rotation_speed, wheel_speed);
 	
 	set_speed(left_t , -wheel_speed);
 	set_speed(right_t , wheel_speed);
@@ -168,18 +167,30 @@ void Control::robot_go_distance(float distance, float ratio){
 	//set speed
 	float left_speed;
 	float right_speed;
-	if(distance>0)
+	if(ratio!=-1)
 	{
-		left_speed =  rotation_speed * (2/(ratio+1));
-		right_speed = rotation_speed * (2/(ratio+1))*ratio;
+		if(distance>0)
+		{
+			left_speed =  rotation_speed * (2/(ratio+1));
+			right_speed = rotation_speed * (2/(ratio+1))*ratio;
+		}
+		else
+		{
+			left_speed =  rotation_speed * (2/(ratio+1))*ratio;
+			right_speed = rotation_speed * (2/(ratio+1));
+		}
+	}else{
+		if(distance>0)
+		{
+			left_speed =  -rotation_speed ;
+			right_speed = -rotation_speed ;
+		}
+		else
+		{
+			left_speed =  rotation_speed ;
+			right_speed = rotation_speed ;
+		}
 	}
-	else
-	{
-		left_speed =  rotation_speed * (2/(ratio+1))*ratio;
-		right_speed = rotation_speed * (2/(ratio+1));
-	}
-//	printf("speed1:%f %f %f %f %f %f\r\n",left_speed,right_speed,rotation_speed,wheel_speed,ratio,delta_distance);
-
 	//check both wheels can be fast enough, else reduce both speeds
 	if(left_speed>speed_limit || left_speed<-speed_limit)
 	{
@@ -191,7 +202,6 @@ void Control::robot_go_distance(float distance, float ratio){
 		left_speed = left_speed *speed_limit/right_speed;
 		right_speed = speed_limit;
 	}
-	printf("\r\nspeed:%f %f %f %f %f",left_speed,right_speed,rotation_speed,wheel_speed,delta_distance);
 		
 	set_speed(left_t , left_speed );	
 	set_speed(right_t , right_speed );
@@ -222,11 +232,9 @@ void Control::run_wheel(wheel_t wheel){
 	switch(wheel){
 		case left_t:
 			rc_set_motor(1, -pwm_v[wheel]);
-			printf("\r\n left : %d\r\n",-pwm_v[wheel]); 
 			break;
 		case right_t:
 			rc_set_motor(2, pwm_v[wheel]);
-			printf("\r\n right : %d\r\n",pwm_v[wheel]); 
 			break;
 		default:
 			break;
@@ -262,7 +270,7 @@ void Control::disable()
 	state=false;
 }
 
-void Control::distance_direct_arc( coordinates_t stop, float* distance, float* ratio)
+void Control::distance_direct_arc( coordinates_t stop, float* distance, float* ratio,asserv_direction_t dir)
 {
 	
 	float theta_in,theta_side;
@@ -270,8 +278,6 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 		theta_in = PI/2-atan(stop.x/stop.y);
 	else
 		theta_in = 0;
-/* 	if(theta_in>PI/2)
-		theta_in=theta_in -PI; */
 	
 	theta_side = PI - 2*theta_in;
 
@@ -286,34 +292,89 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 	
 	// printf("distance_direct_arc %f %f %f %f\r\n",r,d,theta_in,theta_side);	
 	// printf("STOP %f %f \r\n",stop.x,stop.y);	
-	if(stop.y>=0)
+	switch(dir)
 	{
-		*distance  = theta_side*r;
-		if(stop.x<0)
+	case force_frontward:
+		if(stop.y>=0)
 		{
-			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			*distance  = theta_side*r;
+			if(stop.x<0)
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
+			else
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
 		}
-		else
+		else{
+			*distance  = (2*PI-theta_side)*r;
+			if(stop.x<0)  
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
+			else
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
+		}
+	break;
+	case force_backwardward:
+		if(stop.y>=0)
 		{
-			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			*distance  = -(2*PI-theta_side)*r;
+			if(stop.x<0)
+			{
+				*ratio = (r+robot_parameter.wheel_distance()/2)/(r-robot_parameter.wheel_distance()/2);
+			}
+			else
+			{
+				*ratio = (r+robot_parameter.wheel_distance()/2)/(r-robot_parameter.wheel_distance()/2);
+			}
 		}
-	}
-	else{
-		*distance  = -theta_side*r;
-		if(stop.x<0)  
+		else{
+			*distance  = -theta_side*r;
+			if(stop.x<0)  
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
+			else
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
+		}
+	break;
+	case asserv_any_dir:
+		if(stop.y>=0)
 		{
-			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			*distance  = theta_side*r;
+			if(stop.x<0)
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
+			else
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
 		}
-		else
-		{
-			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+		else{
+			*distance  = -theta_side*r;
+			if(stop.x<0)  
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
+			else
+			{
+				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			}
 		}
+	break;
 	}
 
 	return;
 }
 
-void Control::distance_arc( coordinates_t start, coordinates_t stop, float* distance, float* ratio){
+void Control::distance_arc( coordinates_t start, coordinates_t stop, float* distance, float* ratio,asserv_direction_t dir){
 	coordinates_t temp,temp2;
 	float angle = start.theta-PI/2;
 	while(angle>PI)
@@ -329,6 +390,6 @@ void Control::distance_arc( coordinates_t start, coordinates_t stop, float* dist
 	temp2.x =   temp.x * cosa + temp.y *sina;
 	temp2.y =  -temp.x * sina + temp.y *cosa;
 
-	distance_direct_arc(temp2, distance, ratio);
+	distance_direct_arc(temp2, distance, ratio,dir);
 	return;
 }

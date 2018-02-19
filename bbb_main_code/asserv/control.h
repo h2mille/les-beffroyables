@@ -9,7 +9,11 @@
 
 extern Position position;
 
-
+typedef enum{
+	force_frontward,
+	force_backwardward,
+	asserv_any_dir
+}asserv_direction_t;
 
 class Control{
     
@@ -29,8 +33,8 @@ class Control{
     void enable();
     void disable();
 
-    void distance_direct_arc( coordinates_t stop, float* distance, float* ratio);
-	void distance_arc( coordinates_t start, coordinates_t stop, float* distance, float* ratio);
+    void distance_direct_arc( coordinates_t stop, float* distance, float* ratio,asserv_direction_t dir);
+	void distance_arc( coordinates_t start, coordinates_t stop, float* distance, float* ratio,asserv_direction_t dir);
 
     
     private:
