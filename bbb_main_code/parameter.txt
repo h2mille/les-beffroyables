@@ -1,4 +1,0 @@
-wheel_distance 0
-left_wheel_diameter 0
-right_wheel_diameter 0
-dotperturn 0
