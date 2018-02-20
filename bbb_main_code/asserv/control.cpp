@@ -130,6 +130,7 @@ void Control::robot_go_distance(float distance, float ratio){
 		rotation_speed= -rotation_speed;
 	//Check if speed is too high
 	//for acceleration
+	printf("go_dist %f %f %f\r\n",delta_distance,rotation_speed,ratio);
 	if((rotation_speed - wheel_speed)*1000000/(float)robot_parameter.period()>acceleration_limit)
 	{
 		rotation_speed=acceleration_limit*(float)robot_parameter.period()/1000000+wheel_speed;
@@ -162,6 +163,7 @@ void Control::robot_go_distance(float distance, float ratio){
 			rotation_speed=-sqrt(2* -delta_distance/acceleration_limit)*acceleration_limit;
 		}
 	} 
+	printf("go_dist %f %f %f\r\n",delta_distance,rotation_speed, ratio);
 	
 	
 	//set speed
@@ -297,76 +299,42 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 	case force_frontward:
 		if(stop.y>=0)
 		{
+			printf("1 %f %f \r\n",theta_side,r);
 			*distance  = theta_side*r;
-			if(stop.x<0)
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
-			else
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
+			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
+			printf("12 %f %f \r\n",*distance,*ratio);
 		}
 		else{
+			printf("21 %f %f \r\n",theta_side,r);
 			*distance  = (2*PI-theta_side)*r;
-			if(stop.x<0)  
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
-			else
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
+			*ratio = (r+robot_parameter.wheel_distance()/2)/(r-robot_parameter.wheel_distance()/2);
+			printf("22 %f %f \r\n",*distance,*ratio);
 		}
 	break;
 	case force_backwardward:
 		if(stop.y>=0)
 		{
+			printf("3 %f %f \r\n",theta_side,r);
 			*distance  = -(2*PI-theta_side)*r;
-			if(stop.x<0)
-			{
-				*ratio = (r+robot_parameter.wheel_distance()/2)/(r-robot_parameter.wheel_distance()/2);
-			}
-			else
-			{
-				*ratio = (r+robot_parameter.wheel_distance()/2)/(r-robot_parameter.wheel_distance()/2);
-			}
+			*ratio = (r+robot_parameter.wheel_distance()/2)/(r-robot_parameter.wheel_distance()/2);
 		}
 		else{
+			printf("4 %f %f \r\n",theta_side,r);
 			*distance  = -theta_side*r;
-			if(stop.x<0)  
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
-			else
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
+			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
 		}
 	break;
 	case asserv_any_dir:
 		if(stop.y>=0)
 		{
+			printf("5\r\n");
 			*distance  = theta_side*r;
-			if(stop.x<0)
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
-			else
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
+			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
 		}
 		else{
+			printf("6\r\n");
 			*distance  = -theta_side*r;
-			if(stop.x<0)  
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
-			else
-			{
-				*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
-			}
+			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
 		}
 	break;
 	}

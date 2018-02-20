@@ -55,7 +55,7 @@ FILE *f ;
 	while(rc_get_state() != EXITING){
 		float dist;
 		float ratio;
-		couleur("34");
+		//couleur("34");
 		switch(asserv.get_asserv_mode())
 		{
 			case(asserv_queue):
@@ -65,8 +65,11 @@ FILE *f ;
 				
 			    asserv.get_next_move(&pos,&dist_left);
 				control.distance_arc(position.get_coordinates(),pos,&dist,&ratio,force_frontward);
+				if(dist<0)
+					dist=-dist;
 				printf("\r\ndistance %f %f\r\n",dist+dist_left,ratio);
 				printf("%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
+				printf("from %f %f to %f %f\n", position.get_coordinates().x,position.get_coordinates().y,pos.x,pos.y);
 
 				f=fopen("log.csv", "a");
 				fprintf(f, "%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
@@ -76,18 +79,12 @@ FILE *f ;
 				{
 					if((dist+dist_left)*(dist+dist_left)<2)
 					{
-						f=fopen("log.csv", "a");
-						fprintf(f, "arrived!\n");
-						fclose(f);
 						asserv.set_arrived(true);
 						printf("end trip\r\n");
 						asserv.set_asserv_mode(asserv_no);
 					}
 					else
 					{
-						f=fopen("log.csv", "a");
-						fprintf(f, "next spot!\n");
-						fclose(f);
 						couleur("31");
 						printf("\r\nnext spot\r\n");
 						asserv.go_next();
@@ -185,6 +182,11 @@ void Asserv::add_move(float x, float y, float theta){
 		control.distance_arc(position.get_coordinates(),move,&dist,&ratio,force_frontward);
 		dist=0;
 	}
+					if(dist<0)
+					dist=-dist;
+
+	printf("dist= %f\r\n", dist);
+	printf("dist= %f\r\n", dist);
 	dist_list.push(dist);
 	dest_list.push(move);
 }
