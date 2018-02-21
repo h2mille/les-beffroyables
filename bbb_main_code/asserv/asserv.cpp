@@ -174,7 +174,7 @@ void Asserv::add_move(float x, float y, float theta){
 	float dist,ratio;
 	if(dest_list.size()>0)
 	{
-		control.distance_arc(dest_list.front(),move,&dist,&ratio,force_frontward);
+		control.distance_arc(dest_list.back(),move,&dist,&ratio,force_frontward);
 		dist+=dist_list.top();
 	}
 	else

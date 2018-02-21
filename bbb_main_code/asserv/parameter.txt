@@ -1,9 +1,9 @@
-wheel_distance = 180
-left_wheel_diameter = 62
-right_wheel_diameter = -62
+wheel_distance = 190
+left_wheel_diameter = 60.0
+right_wheel_diameter = -61
 dotperturn = 5600
 
-period = 5000
+period = 10000
 
 pastille_angle_depart = 1
 pastille_distance     = 5

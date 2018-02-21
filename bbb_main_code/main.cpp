@@ -88,26 +88,26 @@ int main(){
 	coordinates_t dot;
 
 
-	printf("dest liste\r\n");
 	asserv.add_move(-250,0,3*PI/2);
-    asserv.add_move(-500,0,PI/2);
+	asserv.add_move(-500,0,PI/2);
 	asserv.add_move(-250,0,3*PI/2);
 	asserv.add_move(0,0,PI/2);
 	asserv.add_move(250,0,3*PI/2);
-    asserv.add_move(500,0,PI/2);
+   	asserv.add_move(500,0,PI/2);
 	asserv.add_move(250,0,3*PI/2);
 	asserv.add_move(0,0,PI/2);
 	asserv.go_destination();
-	asserv.go_angle(0);
-	asserv.add_move(0,-250,PI);
-    asserv.add_move(0,-500,0);
-	asserv.add_move(0,-250,PI);
-	asserv.add_move(0,0,0);
-	asserv.add_move(0,250,PI);
-    asserv.add_move(0,500,0);
-	asserv.add_move(0,250,PI);
-	asserv.add_move(0,0,0);
-	asserv.go_destination();
+	while(rc_get_state() != EXITING );
+	// asserv.go_angle(PI/2+2*PI);
+	// asserv.add_move(0,-250,PI);
+   	// asserv.add_move(0,-500,0);
+	// asserv.add_move(0,-250,PI);
+	// asserv.add_move(0,0,0);
+	// asserv.add_move(0,250,PI);
+   	// asserv.add_move(0,500,0);
+	// asserv.add_move(0,250,PI);
+	// asserv.add_move(0,0,0);
+	// asserv.go_destination();
 	
 	int i=0;
 	while(rc_get_state() != EXITING )

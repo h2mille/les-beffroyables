@@ -275,6 +275,7 @@ void Control::disable()
 void Control::distance_direct_arc( coordinates_t stop, float* distance, float* ratio,asserv_direction_t dir)
 {
 	
+	printf("equivalent to going to %f %f %f \r\n",stop.x,stop.y,stop.theta);
 	float theta_in,theta_side;
 	if(stop.y!=0)
 		theta_in = PI/2-atan(stop.x/stop.y);
@@ -290,7 +291,8 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 		return;
 	}
 	float d = sqrt(pow(stop.x,2)+pow(stop.y,2));
-	float r=d*sin(theta_in)/sin(theta_side);
+//	float r=d*sin(theta_in)/sin(theta_side);
+	float r=d/(2*cos(theta_in));
 	
 	// printf("distance_direct_arc %f %f %f %f\r\n",r,d,theta_in,theta_side);	
 	// printf("STOP %f %f \r\n",stop.x,stop.y);	
@@ -306,7 +308,7 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 		}
 		else{
 			printf("21 %f %f \r\n",theta_side,r);
-			*distance  = (2*PI-theta_side)*r;
+			*distance  = (theta_side)*r;
 			*ratio = (r+robot_parameter.wheel_distance()/2)/(r-robot_parameter.wheel_distance()/2);
 			printf("22 %f %f \r\n",*distance,*ratio);
 		}
@@ -345,6 +347,7 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 void Control::distance_arc( coordinates_t start, coordinates_t stop, float* distance, float* ratio,asserv_direction_t dir){
 	coordinates_t temp,temp2;
 	float angle = start.theta-PI/2;
+	printf("check coordinates start: %f %f %f ,stop: %f %f %f", start.x,start.y,start.theta,stop.x,stop.y,stop.theta);
 	while(angle>PI)
 		angle-=2*PI;
 	while(angle<-PI)
