@@ -301,7 +301,7 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 	case force_frontward:
 		if(stop.y>=0)
 		{
-			printf("1 %f %f \r\n",theta_side,r);
+			printf("1 %f %f %f \r\n",d,theta_side,r);
 			*distance  = theta_side*r;
 			*ratio = (r-robot_parameter.wheel_distance()/2)/(r+robot_parameter.wheel_distance()/2);
 			printf("12 %f %f \r\n",*distance,*ratio);
