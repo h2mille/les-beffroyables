@@ -55,31 +55,37 @@ void setup()
   sensor_right.setAddress(0X14);
   sensor_right.setTimeout(500);
 
-  sensor_top.setSignalRateLimit(0.1);
+  sensor_top.setSignalRateLimit(0.25);
   sensor_top.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
   sensor_top.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-  sensor_left.setSignalRateLimit(0.1);
+  sensor_left.setSignalRateLimit(0.25);
   sensor_left.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
   sensor_left.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
-  sensor_right.setSignalRateLimit(0.1);
+  sensor_right.setSignalRateLimit(0.25);
   sensor_right.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
   sensor_right.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
 
-  sensor_top.setMeasurementTimingBudget(20000);
-  sensor_left.setMeasurementTimingBudget(20000);
-  sensor_right.setMeasurementTimingBudget(20000);
+  sensor_top.setMeasurementTimingBudget(33000);
+  sensor_left.setMeasurementTimingBudget(33000);
+  sensor_right.setMeasurementTimingBudget(33000);
+
+  sensor_top.startContinuous();
+  sensor_left.startContinuous();
+  sensor_right.startContinuous();
 }
 
 void loop()
 {
-  Serial.print(sensor_left.readRangeSingleMillimeters());
-  if (sensor_left.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-  Serial.print(" ");
-  Serial.print(sensor_top.readRangeSingleMillimeters());
-  if (sensor_top.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-  Serial.print(" ");
-  Serial.print(sensor_right.readRangeSingleMillimeters());
+//  Serial.print(sensor_left.readRangeContinuousMillimeters());
+//  if (sensor_left.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+//  Serial.print(" ");
+//  Serial.print(sensor_top.readRangeContinuousMillimeters());
+//  if (sensor_top.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+//  Serial.print(" ");
+  Serial.print(sensor_right.readRangeContinuousMillimeters());
   if (sensor_right.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
 
   Serial.println();
+  Serial.print("time:");
+  Serial.println(millis());
 }
