@@ -24,3 +24,9 @@ asserv_shield/shield/motor_shield_08.job
 *.b#9
 *.b#9
 *.s#4
+*.b#9
+*.epf
+*.epf
+*.b#9
+asserv_shield/shield/motor_shield.b#9
+asserv_shield/shield/eagle.epf
