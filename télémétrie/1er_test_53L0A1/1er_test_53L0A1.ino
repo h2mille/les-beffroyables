@@ -27,17 +27,42 @@ VL53L0X sensor_right;
 
 
 
-STMPE1600DigiOut *xshutdown_top;
-STMPE1600DigiOut *xshutdown_left;
-STMPE1600DigiOut *xshutdown_right;
+STMPE1600PinOut *xshutdown_top;
+STMPE1600PinOut *xshutdown_left;
+STMPE1600PinOut *xshutdown_right;
+
+STMPE1600DigiOut *digit[4];
+
+void printdigit(uint8_t digit){
+
+  
+}
+
+void write_dec(int value)
+{
+  uint8_t i;
+  for (i=0;i<4;i++)
+  {
+    digit[i]->write(value-(value/10)*10);
+    value/=10;
+  }
+}
 
 void setup()
 {
   Serial.begin(115200);
   Wire.begin();
-  xshutdown_top = new STMPE1600DigiOut(&Wire, GPIO_15, (0x42 * 2));
-  xshutdown_left = new STMPE1600DigiOut(&Wire, GPIO_14, (0x43 * 2));
-  xshutdown_right = new STMPE1600DigiOut(&Wire, GPIO_15, (0x43 * 2));
+  xshutdown_top = new STMPE1600PinOut(&Wire, GPIO_15, (0x42 * 2));
+  xshutdown_left = new STMPE1600PinOut(&Wire, GPIO_14, (0x43 * 2));
+  xshutdown_right = new STMPE1600PinOut(&Wire, GPIO_15, (0x43 * 2));
+
+  digit[0]= new STMPE1600DigiOut(&Wire, 1, (0x42 * 2));
+  digit[1]= new STMPE1600DigiOut(&Wire, 0, (0x42 * 2));
+  digit[2]= new STMPE1600DigiOut(&Wire, 1, (0x43 * 2));
+  digit[3]= new STMPE1600DigiOut(&Wire, 0, (0x43 * 2));
+
+
+
   xshutdown_top->write(HIGH);
   xshutdown_left->write(LOW);
   xshutdown_right->write(LOW);
@@ -76,12 +101,11 @@ void setup()
 
 void loop()
 {
-//  Serial.print(sensor_left.readRangeContinuousMillimeters());
-//  if (sensor_left.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-//  Serial.print(" ");
-//  Serial.print(sensor_top.readRangeContinuousMillimeters());
-//  if (sensor_top.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-//  Serial.print(" ");
+  Serial.print(sensor_left.readRangeContinuousMillimeters());
+  if (sensor_left.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+  Serial.print(" ");
+  write_dec(sensor_top.readRangeContinuousMillimeters());
+  Serial.print(" ");
   Serial.print(sensor_right.readRangeContinuousMillimeters());
   if (sensor_right.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
 
