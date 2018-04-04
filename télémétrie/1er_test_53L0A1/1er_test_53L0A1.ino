@@ -25,7 +25,8 @@ VL53L0X sensor_right;
 
 //#define LONG_RANGE
 
-
+#define NO_DETECT_THRETHOLD 10
+#define DETECT_THRETHOLD 3
 
 STMPE1600PinOut *xshutdown_top;
 STMPE1600PinOut *xshutdown_left;
@@ -33,10 +34,15 @@ STMPE1600PinOut *xshutdown_right;
 
 STMPE1600DigiOut *digit[4];
 
-void printdigit(uint8_t digit){
+int FIFO[3][10];
+uint8_t FIFO_position[3]={0,0,0};
+//uint8_t FIFO_coef[10]={10,8,6,5,4,3,2,1,1,1};
+uint8_t FIFO_coef[10]  ={10,6,4,3,2,2,1,1,1,1};
+uint8_t FIFO_sum;
+uint8_t no_detect[3]={0,0,0};
+uint8_t detect[3]={0,0,0};
 
-  
-}
+
 
 void write_dec(int value)
 {
@@ -97,19 +103,88 @@ void setup()
   sensor_top.startContinuous();
   sensor_left.startContinuous();
   sensor_right.startContinuous();
+
+  uint8_t i;
+  for(i=0;i<3*10;i++)
+    FIFO[0][i]=0;
+  FIFO_sum=0;
+  for(i=0;i<10;i++)
+    FIFO_sum+=FIFO_coef[i];
+  
+}
+void add_fifo(){
+  int temp[3];
+  temp[0]=sensor_left.readRangeContinuousMillimeters();
+  temp[1]=sensor_top.readRangeContinuousMillimeters();
+  temp[2]=sensor_right.readRangeContinuousMillimeters();
+  uint8_t i;
+  for(i=0;i<3;i++)
+  {
+    if(temp[i]>2500)
+    {
+      if(no_detect[i]<NO_DETECT_THRETHOLD)
+        {
+          no_detect[i]++;   
+      }
+      else
+      {
+        FIFO_position[i]= (FIFO_position[i]+1)%10;
+        FIFO[i][FIFO_position[i]]= 2500;
+        Serial.println("nothing detected for too long");
+        detect[i]=0;
+      }
+    }
+    else
+    {
+      if(detect[i]<DETECT_THRETHOLD)
+      {
+        detect[i]++;
+      }
+      else
+      {    
+        FIFO_position[i]= (FIFO_position[i]+1)%10;
+        FIFO[i][FIFO_position[i]]= temp[i];
+        no_detect[i]=0;
+      }
+    }
+  }
 }
 
+void read_fifo(int32_t tab[]){
+  uint8_t i,j;
+  tab[0]=FIFO[0][FIFO_position[0]];tab[1]=FIFO[1][FIFO_position[1]];tab[2]=FIFO[2][FIFO_position[2]];
+//  tab[0]=0;tab[1]=0;tab[2]=0;
+//  for(j=0;j<3;j++){
+////    Serial.println();
+////    Serial.print(j);
+////    Serial.print(" ");
+//    for(i=0;i<10;i++)
+//    {
+////    Serial.print(FIFO[j][i]);
+////    Serial.print("\t");
+////    Serial.print(FIFO[j][i]*FIFO_coef[(FIFO_position[j]-i+10)%10]);
+////    Serial.print("\t");
+//      tab[j]+=(uint32_t)FIFO[j][i]*FIFO_coef[(FIFO_position[j]-i+10)%10];
+//    }
+//  }
+//
+//  tab[0]/=FIFO_sum;
+//  tab[1]/=FIFO_sum;
+//  tab[2]/=FIFO_sum;
+
+}
 void loop()
 {
-  Serial.print(sensor_left.readRangeContinuousMillimeters());
-  if (sensor_left.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+  int32_t tab[3];
+  add_fifo();
+  read_fifo(tab);
+  write_dec(tab[1]);
+  Serial.print(tab[0]);
   Serial.print(" ");
-  write_dec(sensor_top.readRangeContinuousMillimeters());
+  Serial.print(tab[1]);
   Serial.print(" ");
-  Serial.print(sensor_right.readRangeContinuousMillimeters());
-  if (sensor_right.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
-
+  Serial.print(tab[2]);
   Serial.println();
-  Serial.print("time:");
-  Serial.println(millis());
+
+
 }

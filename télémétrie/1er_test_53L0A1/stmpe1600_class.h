@@ -210,8 +210,6 @@ class STMPE1600DigiOut {
        /* set the exppinname state to lvl */
        STMPE1600DigiOut_I2CRead(data, expdevaddr, GPSR_0_7, 2);
        *(uint16_t*)data = *(uint16_t*)data & (uint16_t)(~(uint16_t)((0b1111111)<<(uint16_t)(expdigitname*7)));  // set pin mask
-	   Serial.print("value: ");
-	   Serial.println(value);
 	   
 	   switch(value)
 	   {
@@ -267,11 +265,8 @@ class STMPE1600DigiOut {
 			 buff=0b0000000;
 	   }
 
-	   Serial.print("data: ");
-	   Serial.println(*(uint16_t*)data);
+
       *(uint16_t*)data = *(uint16_t*)data | (uint16_t)((buff)<<(uint16_t)(expdigitname*7));
-	   Serial.print("data: ");
-	   Serial.println(*(uint16_t*)data);
        STMPE1600DigiOut_I2CWrite(data, expdevaddr, GPSR_0_7, 2);
     }
 		
