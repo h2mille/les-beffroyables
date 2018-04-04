@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include "roboticscape.h"
 #include "asserv/types.h"
+#include "parser.h"
 
 
 
@@ -21,6 +22,7 @@ extern Position position;
 extern Control control;
 extern Asserv asserv;
 extern parameter robot_parameter;
+extern Parser parser;
 
 #ifdef USE_GYRO
     extern rc_imu_data_t data;
@@ -82,19 +84,21 @@ int main(){
 	float distance;
 	float ratio=47;
 	
+	parser.parser_init();
+	
 	coordinates_t destination;
 
 
 	coordinates_t dot;
 
 
-	asserv.add_move(-250,0,3*PI/2);
-	asserv.add_move(-500,0,PI/2);
-	asserv.add_move(-250,0,3*PI/2);
+	asserv.add_move(-350,0,3*PI/2);
+	asserv.add_move(-700,0,PI/2);
+	asserv.add_move(-350,0,3*PI/2);
 	asserv.add_move(0,0,PI/2);
-	asserv.add_move(250,0,3*PI/2);
-   	asserv.add_move(500,0,PI/2);
-	asserv.add_move(250,0,3*PI/2);
+	asserv.add_move(350,0,3*PI/2);
+   	asserv.add_move(700,0,PI/2);
+	asserv.add_move(350,0,3*PI/2);
 	asserv.add_move(0,0,PI/2);
 	asserv.go_destination();
 	while(rc_get_state() != EXITING );

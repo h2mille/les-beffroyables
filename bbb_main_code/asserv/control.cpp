@@ -37,8 +37,6 @@ void Control::run()
 	else if(fabs(delta_angle_finish)>robot_parameter.pastille_angle_fin()){
 		;
 	}
-	
-	
 	return;
 }
 
@@ -91,11 +89,13 @@ void Control::go_angle(){
 }
 
 void Control::wheel_go_distance(wheel_t wheel){
-	float pid_p = 10000;
+	float pid_p = 100000;
+//	float pid_p = 10000;
 	float pid_i = 0.000;
-	float pid_d = -10000.0;
+	float pid_d = 0000.0;
+//	float pid_d = -10000.0;
 	float speed_limit = 1000;
-	float acceleration_limit = 3000;
+	float acceleration_limit = 5000;
 	
 	float delta_distance = wheel_dist_destination[wheel] - position.distance(wheel);
 	float wheel_speed = position.speed(wheel);
@@ -116,7 +116,7 @@ void Control::robot_go_distance(float distance, float ratio){
 	// float pid_p = 30000;
 	// float pid_i = 0.000;
 	// float pid_d = -3000;
-	float speed_limit = 1000;
+	float speed_limit = 700;
 	float acceleration_limit = 1000;
 	
 	

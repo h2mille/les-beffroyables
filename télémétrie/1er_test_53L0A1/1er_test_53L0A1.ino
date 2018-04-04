@@ -25,7 +25,7 @@ VL53L0X sensor_right;
 
 //#define LONG_RANGE
 
-#define NO_DETECT_THRETHOLD 10
+#define NO_DETECT_THRETHOLD 5
 #define DETECT_THRETHOLD 3
 
 STMPE1600PinOut *xshutdown_top;
