@@ -233,7 +233,7 @@ void Control::run_wheel(wheel_t wheel){
 		pwm_v[wheel]=1;
 	switch(wheel){
 		case left_t:
-			rc_set_motor(1, -pwm_v[wheel]);
+			rc_set_motor(1, pwm_v[wheel]);
 			break;
 		case right_t:
 			rc_set_motor(2, pwm_v[wheel]);

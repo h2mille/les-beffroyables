@@ -2,8 +2,8 @@
 #define CONTROL_H
 #include <stdint.h>
 #include "position.h"
-#include "../libraries/rc_usefulincludes.h"
-#include "../libraries/roboticscape.h"
+#include "../../Robotics_Cape_Installer/libraries/rc_usefulincludes.h"
+#include "../../Robotics_Cape_Installer/libraries/roboticscape.h"
 #include "types.h"
 
 

@@ -4,8 +4,8 @@
 #include "position.h"
 #include "types.h"
 
-#include "../libraries/rc_usefulincludes.h"
-#include "../libraries/roboticscape.h"
+#include "../../Robotics_Cape_Installer/libraries/rc_usefulincludes.h"
+#include "../../Robotics_Cape_Installer/libraries/roboticscape.h"
 class encoder{
     
     public:

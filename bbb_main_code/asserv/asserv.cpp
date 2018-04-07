@@ -239,12 +239,12 @@ void Asserv::asserv_init(){
 	robot_parameter.load_values();
 
 	
-	if (pthread_create(&position_thread, NULL, position_computation, NULL)) {
+	 if (pthread_create(&position_thread, NULL, position_computation, NULL)) {
 		perror("pthread_create");
-    }
-	if (pthread_create(&control_thread, NULL, control_wheels, NULL)) {
-		perror("pthread_create");
-    }
+     }
+//	 if (pthread_create(&control_thread, NULL, control_wheels, NULL)) {
+//		 perror("pthread_create");
+ //    }
 	position.update_x(0);
 	position.update_y(0);
 	position.update_theta(PI/2);
