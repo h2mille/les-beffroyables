@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project (robot)
 add_subdirectory("asserv")
+set (CMAKE_CXX_STANDARD 11)
 file(GLOB SOURCES "asserv/*.cpp")
 
 find_package (Threads)

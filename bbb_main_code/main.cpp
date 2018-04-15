@@ -54,13 +54,16 @@ int main(){
 	add.theta = -PI/2;
 
 	int i=0;
+	
+	
     
 	while(rc_get_state() != EXITING)
 	{
 		asserv.add_coordinate(&destination,destination,add);
 		printf("\r\nnext %d  %f %f %f\r\n",i++,destination.x, destination.y,destination.theta);
 		asserv.go_destination(destination.x, destination.y, destination.theta);
-		
+		while(asserv.is_arrived()== false && rc_get_state() != EXITING)
+					rc_usleep(100000000);		
 	}
 #ifdef USE_GYRO
 	rc_power_off_imu();
@@ -68,8 +71,8 @@ int main(){
 	rc_cleanup();
 
 }
-*/
 
+*/
 
 int main(){
 	printf("\033[H\033[2J");
@@ -92,18 +95,31 @@ int main(){
 
 
 	coordinates_t dot;
+	
+	// while(rc_get_state() != EXITING )
+	// {
+
+		// control.set_speed(left_t,100);
+		// rc_usleep(1000000);
+		// control.set_speed(left_t,800);
+		// rc_usleep(1000000);
+		
+		
+	// }
+	
+
+	// asserv.force_direction(force_forward);
 
 
-	asserv.add_move(-350,0,3*PI/2);
-	asserv.add_move(-700,0,PI/2);
-	asserv.add_move(-350,0,3*PI/2);
-	asserv.add_move(0,0,PI/2);
-	asserv.add_move(350,0,3*PI/2);
-   	asserv.add_move(700,0,PI/2);
-	asserv.add_move(350,0,3*PI/2);
-	asserv.add_move(0,0,PI/2);
-	asserv.go_destination();
-	while(rc_get_state() != EXITING );
+	// asserv.add_move(-350,0,PI/2);
+	// asserv.add_move(-700,0,PI/2);
+	// asserv.add_move(-350,0,3*PI/2);
+
+	// asserv.add_move(350,0,3*PI/2);
+   	// asserv.add_move(700,0,PI/2);
+	// asserv.add_move(350,0,3*PI/2);
+	// asserv.add_move(0,0,PI/2);
+	// asserv.go_destination();
 	// asserv.go_angle(PI/2+2*PI);
 	// asserv.add_move(0,-250,PI);
   	// asserv.add_move(0,-500,0);
@@ -114,6 +130,10 @@ int main(){
 	// asserv.add_move(0,250,PI);
 	// asserv.add_move(0,0,0);
 	// asserv.go_destination();
+	while(rc_get_state() != EXITING )
+		rc_usleep(1000000);
+
+		
 	
 	int i=0;
 	while(rc_get_state() != EXITING )

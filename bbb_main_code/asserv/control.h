@@ -7,10 +7,10 @@
 #include "types.h"
 
 
-extern Position position;
+
 
 typedef enum{
-	force_frontward,
+	force_forward,
 	force_backwardward,
 	asserv_any_dir
 }asserv_direction_t;
@@ -19,6 +19,8 @@ class Control{
     
     public:
 	Control();
+	void set_pid_dist(float arg1,float arg2,float arg3);
+	void set_pid_speed(float arg1,float arg2,float arg3);
     void run();
 	void go_angle();
 	void wheel_go_distance(wheel_t wheel);
@@ -29,6 +31,9 @@ class Control{
     void set_destination(coordinates_t destination_coordinates);
     coordinates_t get_destination();
     void set_wheel_distance(wheel_t wheel, float distance);
+	
+	void set_speed_accel(float s,float a);
+	void set_rot_speed_accel(float s,float a);
 
     void enable();
     void disable();
@@ -41,12 +46,21 @@ class Control{
 
     coordinates_t destination; 
 	bool state;
+	float pid_dist[3];
+	float pid_speed[3];
+	
 	float pwm_v[2];
 	float speed[2];
 	float prev_delta_speed[2];
 	float prev_delta_angle;
 	float prev_rotation_speed;
 	float wheel_dist_destination[2];
+	
+	float speed_max;
+	float accel_max;
+	float rot_speed_max;
+	float rot_accel_max;
+
     
 };
 

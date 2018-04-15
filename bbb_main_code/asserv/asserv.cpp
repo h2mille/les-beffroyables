@@ -10,7 +10,9 @@
 #include <pthread.h>
 
 
+
 using namespace std;
+
 
 #include "roboticscape.h"
 #include "types.h"
@@ -18,7 +20,11 @@ using namespace std;
 Asserv asserv;
 #define couleur(param) printf("\033[%sm",param)
 
+extern Position position;
+extern Control control;
+extern parameter robot_parameter;
 
+mutex motor_mutex;
 
 asserv_type_t Asserv::get_asserv_mode(){
 	return asserv_mode;
@@ -39,12 +45,8 @@ void Asserv::set_arrived(bool isit){
 
 static void *position_computation(void *arg){ 
 	while(rc_get_state() != EXITING){
-		 position.Update_coordinates();
-//		 printf("\r");
-//		 position.print_coordinates();
-		fflush(stdout);
+		position.Update_coordinates();
 		rc_usleep(robot_parameter.period());
-
 	}
 	pthread_exit(NULL);
 		
@@ -56,6 +58,7 @@ FILE *f ;
 		float dist;
 		float ratio;
 		//couleur("34");
+		printf("asserv is unlocked\r\n");
 		switch(asserv.get_asserv_mode())
 		{
 			case(asserv_queue):
@@ -63,17 +66,10 @@ FILE *f ;
 				float dist_left;
 				
 				
-			    asserv.get_next_move(&pos,&dist_left);
-				control.distance_arc(position.get_coordinates(),pos,&dist,&ratio,force_frontward);
-				if(dist<0)
-					dist=-dist;
-				printf("\r\ndistance %f %f\r\n",dist+dist_left,ratio);
-				printf("%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
-				printf("from %f %f to %f %f\n", position.get_coordinates().x,position.get_coordinates().y,pos.x,pos.y);
 
-				f=fopen("log.csv", "a");
-				fprintf(f, "%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
-				fclose(f);
+
+			    asserv.get_next_move(&pos,&dist_left);
+				control.distance_arc(position.get_coordinates(),pos,&dist,&ratio,asserv.get_direction());
 
 				if((dist)*(dist) <125	)
 				{
@@ -88,17 +84,30 @@ FILE *f ;
 						couleur("31");
 						printf("\r\nnext spot\r\n");
 						asserv.go_next();
+						asserv.get_next_move(&pos,&dist_left);
+						control.distance_arc(position.get_coordinates(),pos,&dist,&ratio,asserv.get_direction());
 					}
 				}
+
+
+
+				if(dist<0)
+					dist=-dist;
+				printf("\r\ndistance %f %f\r\n",dist+dist_left,ratio);
+				printf("%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
+				printf("from %f %f to %f %f\n", position.get_coordinates().x,position.get_coordinates().y,pos.x,pos.y);
+
+				f=fopen("log.csv", "a");
+				fprintf(f, "%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
+				fclose(f);
+
 				printf("\r\nasserv_vector\r\n");
 				couleur("0");
 				control.robot_go_distance(dist + dist_left,ratio);
-				control.run_wheel(left_t);
-				control.run_wheel(right_t);
 				break;
 			case(asserv_xy):
 
-				control.distance_arc(position.get_coordinates(),control.get_destination(),&dist,&ratio,asserv_any_dir);
+				control.distance_arc(position.get_coordinates(),control.get_destination(),&dist,&ratio,asserv.get_direction());
 				printf("distanceXY %f %f  ",dist,ratio);
 				if(dist*dist <0.4)
 				{
@@ -107,14 +116,10 @@ FILE *f ;
 				}
 				couleur("0");
 				control.robot_go_distance(dist,ratio);
-				control.run_wheel(left_t);
-				control.run_wheel(right_t);
 				break;
 			case(asserv_theta):
 				control.go_angle();
 				printf("asserv_theta %d");
-				control.run_wheel(left_t);
-				control.run_wheel(right_t);
 				if(pow(control.get_destination().theta - position.theta(),2) <0.000001)
 					{
 						asserv.set_arrived(true);
@@ -122,20 +127,32 @@ FILE *f ;
 				break;
 			case(asserv_no):
 				asserv.set_arrived(true);
-				control.set_speed(left_t, 0);
-				control.set_speed(right_t, 0);
-				printf("asserv_no %d");
+				// control.set_speed(left_t, 0);
+				// control.set_speed(right_t, 0);
+
 				couleur("0");
-				control.run_wheel(left_t);
-				control.run_wheel(right_t);
 				break;
 		}
-		
 		rc_usleep(robot_parameter.period());
 	}
 	pthread_exit(NULL);
 		
 }
+
+static void *run_wheels(void *arg)
+{
+	while(rc_get_state() != EXITING)
+	{
+		motor_mutex.lock();
+		control.run_wheel(left_t);
+		control.run_wheel(right_t);
+		motor_mutex.unlock();
+		rc_usleep(robot_parameter.period());
+	}
+	pthread_exit(NULL);
+		
+}
+
 void Asserv::go_destination(float x, float y, float theta){
 	coordinates_t destination;
 	destination.x = x;
@@ -144,8 +161,6 @@ void Asserv::go_destination(float x, float y, float theta){
 	control.set_destination(destination);
 	asserv_mode = asserv_xy;
 	arrived = false;
-	while(arrived == false && rc_get_state() != EXITING)
-		rc_usleep(robot_parameter.period());
 }
 void Asserv::go_angle(float theta){
 	coordinates_t destination;
@@ -153,18 +168,11 @@ void Asserv::go_angle(float theta){
 	control.set_destination(destination);
 	asserv_mode = asserv_theta;
 	arrived = false;
-	while(arrived == false && rc_get_state() != EXITING)
-		rc_usleep(robot_parameter.period());
 }
  void Asserv::go_destination(){
 	 control.set_destination(dest_list.front());
 	 asserv_mode = asserv_queue;
 	 arrived = false;
-	 while(arrived==false && rc_get_state() != EXITING)
-	 {
-		 rc_usleep(robot_parameter.period());
-
-	 }
  }
 void Asserv::add_move(float x, float y, float theta){
 	coordinates_t move;
@@ -174,12 +182,12 @@ void Asserv::add_move(float x, float y, float theta){
 	float dist,ratio;
 	if(dest_list.size()>0)
 	{
-		control.distance_arc(dest_list.back(),move,&dist,&ratio,force_frontward);
+		control.distance_arc(dest_list.back(),move,&dist,&ratio,direction);
 		dist+=dist_list.top();
 	}
 	else
 	{
-		control.distance_arc(position.get_coordinates(),move,&dist,&ratio,force_frontward);
+		control.distance_arc(position.get_coordinates(),move,&dist,&ratio,direction);
 		dist=0;
 	}
 					if(dist<0)
@@ -224,14 +232,19 @@ void Asserv::clean_move(){
 
 void Asserv::add_coordinate(coordinates_t* end,coordinates_t origin, coordinates_t next)
 {
-    end->x= origin.x - next.x*sin(origin.theta)+next.y*cos(origin.theta);
-    end->y= origin.y + next.x*cos(origin.theta)+next.y*sin(origin.theta);
-    end->theta= origin.theta + next.theta;
+	coordinates_t temp;
+	temp.x=origin.x;
+	temp.y=origin.y;
+	temp.theta=origin.theta;
+    end->x= temp.x - next.x*sin(temp.theta)+next.y*cos(temp.theta);
+    end->y= temp.y + next.x*cos(temp.theta)+next.y*sin(temp.theta);
+    end->theta= temp.theta + next.theta;
 
 }
 
 Asserv::Asserv(){
 	asserv_mode = asserv_no;
+	direction=asserv_any_dir;
 }
 
 void Asserv::asserv_init(){
@@ -242,9 +255,12 @@ void Asserv::asserv_init(){
 	 if (pthread_create(&position_thread, NULL, position_computation, NULL)) {
 		perror("pthread_create");
      }
-//	 if (pthread_create(&control_thread, NULL, control_wheels, NULL)) {
-//		 perror("pthread_create");
- //    }
+	if (pthread_create(&control_thread, NULL, control_wheels, NULL)) {
+		 perror("pthread_create");
+     }
+	if (pthread_create(&wheels_thread, NULL, run_wheels, NULL)) {
+		 perror("pthread_create");
+     }
 	position.update_x(0);
 	position.update_y(0);
 	position.update_theta(PI/2);
@@ -252,5 +268,26 @@ void Asserv::asserv_init(){
 Asserv::~Asserv(){
 	pthread_join(position_thread, NULL);
 	pthread_join(control_thread, NULL);
+	pthread_join(wheels_thread, NULL);
+}
+void Asserv::set_pwm(int motor, float pwm){
+	rc_set_motor(motor, pwm);
+}
+void Asserv::motor_lock(){
+	printf("lock asserv\r\n");
+	motor_mutex.lock();
+}
+void Asserv::motor_unlock(){
+	printf("unlock asserv\r\n");
+	motor_mutex.unlock();
 }
 
+void Asserv::force_direction(asserv_direction_t direction_value)
+{
+	direction=direction_value;
+}
+
+asserv_direction_t Asserv::get_direction()
+{
+	return direction;
+}

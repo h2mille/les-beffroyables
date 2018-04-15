@@ -3,11 +3,14 @@
 
 #include <queue>
 #include <stack>
+#include "control.h"
+#include <mutex>
+
 using namespace std;
 
 extern Position position;
 extern Control control;
-extern parameter robot_parameter;
+
 
 typedef struct{
 	coordinates_t position;
@@ -21,9 +24,9 @@ typedef enum{
 	asserv_no
 }asserv_type_t;
 
-	static void *position_computation(void *arg);
-    static void *control_wheels(void *arg);
-
+static void *position_computation(void *arg);
+static void *control_wheels(void *arg);
+static void *run_wheels(void *arg);
 class Asserv{
     
     public:
@@ -39,10 +42,17 @@ class Asserv{
 	void add_move(float x, float y, float theta);
 	void get_next_move(coordinates_t* position, float* dist);
 	void go_next();
+	bool is_arrived();
 	void clean_move();
+	void set_pwm(int motor,float pwm);
+	void motor_lock();
+	void motor_unlock();
+
+	void force_direction(asserv_direction_t direction_value);
+	asserv_direction_t get_direction();
+	
 
 	asserv_type_t get_asserv_mode();
-	bool is_arrived();
     
     private:
 	float left_distance;
@@ -52,10 +62,14 @@ class Asserv{
 	
 	queue<coordinates_t> dest_list;
 	stack<float> dist_list;
-
 	
+	asserv_direction_t direction;
+	
+
 	pthread_t position_thread;
 	pthread_t control_thread;
+	pthread_t wheels_thread;
+	
 
 };
 

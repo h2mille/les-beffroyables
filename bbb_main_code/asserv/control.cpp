@@ -1,5 +1,6 @@
 #include "control.h"
 #include "parameter.h"
+#include "encoder.h"
 #include <iostream>
 #include <math.h>
 #include <stdio.h>
@@ -7,6 +8,8 @@ using namespace std;
 #include <cmath>
 
 extern parameter robot_parameter;
+extern Position position;
+extern uint32_t enc_time_diff;
 Control control;
 
 Control::Control()
@@ -17,6 +20,39 @@ Control::Control()
 	pwm_v[left_t]=0;
 	pwm_v[right_t]=0;
 
+	pid_dist[0]=0.5;
+	pid_dist[1]=0.0;
+	pid_dist[2]=0.0;
+	
+	pid_speed[0]=0.0001;
+	pid_speed[1]=0.00015;
+	pid_speed[2]=-0.005;
+	speed_max = 700;
+	accel_max = 1000;
+	rot_speed_max = 3;
+	rot_accel_max = 8;
+}
+void Control::set_speed_accel(float s,float a)
+{
+	speed_max = s;
+	accel_max = a;
+}
+void Control::set_rot_speed_accel(float s,float a)
+{
+	rot_speed_max = s;
+	rot_accel_max = a;
+}
+void Control::set_pid_dist(float arg1,float arg2,float arg3)
+{
+	pid_dist[0]=arg1;
+	pid_dist[1]=arg2;
+	pid_dist[2]=arg3;
+}
+void Control::set_pid_speed(float arg1,float arg2,float arg3)
+{
+	pid_speed[0]=arg1;
+	pid_speed[1]=arg2;
+	pid_speed[2]=arg3;	
 }
 
 
@@ -41,44 +77,44 @@ void Control::run()
 }
 
 void Control::go_angle(){
-	float pid_p = 0.5;
-	float pid_i = 0.000;
-	float pid_d = 0.0;
-	float speed_limit = 1000;
-	float rotation_speed_limit =3;
-	float rotation_acceleration_limit =8;
+	// float pid_p = 0.5;
+	// float pid_i = 0.000;
+	// float pid_d = 0;
+
+	// float rotation_speed_limit =3;
+	// float rotation_acceleration_limit =8;
 	float delta_angle = destination.theta-position.theta();
 	float real_rotation_speed = position.speed_coordinates().theta;
 
-	float rotation_speed= rotation_speed_limit;
+	float rotation_speed= rot_speed_max;
 	if(delta_angle<0)
 		rotation_speed=-rotation_speed;
 
-	if(rotation_speed>real_rotation_speed+rotation_acceleration_limit*(float)robot_parameter.period()/1000000)
-		rotation_speed=real_rotation_speed+rotation_acceleration_limit*(float)robot_parameter.period()/1000000;
-	else if(rotation_speed<real_rotation_speed-rotation_acceleration_limit*(float)robot_parameter.period()/1000000)
-		 rotation_speed=real_rotation_speed-rotation_acceleration_limit*(float)robot_parameter.period()/1000000;
+	if(rotation_speed>real_rotation_speed+rot_accel_max*(float)enc_time_diff/1000000000)
+		rotation_speed=real_rotation_speed+rot_accel_max*(float)enc_time_diff/1000000000;
+	else if(rotation_speed<real_rotation_speed-rot_accel_max*(float)enc_time_diff/1000000000)
+		 rotation_speed=real_rotation_speed-rot_accel_max*(float)enc_time_diff/1000000000;
 
 	if(delta_angle>0)
 	{
-		if(rotation_speed>sqrt(2* delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit)
-			rotation_speed=sqrt(2* delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit;
-		else if(rotation_speed<-sqrt(2* delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit)
-			rotation_speed=-sqrt(2* delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit;
+		if(rotation_speed>sqrt(2* delta_angle/rot_accel_max) *rot_accel_max)
+			rotation_speed=sqrt(2* delta_angle/rot_accel_max) *rot_accel_max;
+		else if(rotation_speed<-sqrt(2* delta_angle/rot_accel_max) *rot_accel_max)
+			rotation_speed=-sqrt(2* delta_angle/rot_accel_max) *rot_accel_max;
 	}
 	else
 	{
-		if(rotation_speed>sqrt(2* -delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit)
-			rotation_speed=sqrt(2* -delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit;
-		else if(rotation_speed<-sqrt(2* -delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit)
-			rotation_speed=-sqrt(2* -delta_angle/rotation_acceleration_limit) *rotation_acceleration_limit;
+		if(rotation_speed>sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max)
+			rotation_speed=sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max;
+		else if(rotation_speed<-sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max)
+			rotation_speed=-sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max;
 	}
 	
 	float wheel_speed= rotation_speed*robot_parameter.wheel_distance()/2;
-	if(wheel_speed>speed_limit)
-		wheel_speed=speed_limit;
-	if(-speed_limit>speed_limit)
-		wheel_speed=-speed_limit;
+	if(wheel_speed>speed_max)
+		wheel_speed=speed_max;
+	if(-speed_max>speed_max)
+		wheel_speed=-speed_max;
 
 	
 	set_speed(left_t , -wheel_speed);
@@ -89,11 +125,9 @@ void Control::go_angle(){
 }
 
 void Control::wheel_go_distance(wheel_t wheel){
-	float pid_p = 100000;
-//	float pid_p = 10000;
-	float pid_i = 0.000;
-	float pid_d = 0000.0;
-//	float pid_d = -10000.0;
+	 float pid_p = 100000;
+	 float pid_i = 0.000;
+	 float pid_d = 0.0;
 	float speed_limit = 1000;
 	float acceleration_limit = 5000;
 	
@@ -116,7 +150,7 @@ void Control::robot_go_distance(float distance, float ratio){
 	// float pid_p = 30000;
 	// float pid_i = 0.000;
 	// float pid_d = -3000;
-	float speed_limit = 700;
+
 	float acceleration_limit = 1000;
 	
 	
@@ -124,43 +158,45 @@ void Control::robot_go_distance(float distance, float ratio){
 	// float wheel_speed = (position.speed(left_t)+position.speed(right_t))/2;
 	// float rotation_speed= pid_p * delta_distance+ pid_d * wheel_speed ;
 	float delta_distance = distance;
-	float wheel_speed = (position.speed(left_t)+position.speed(right_t))/2;
-	float rotation_speed= speed_limit ;
+//	float wheel_speed = (position.speed(left_t)+position.speed(right_t))/2;
+	float wheel_speed = ((speed[left_t]+speed[right_t])+(position.speed(left_t)+position.speed(right_t)))/4;
+	float rotation_speed= speed_max ;
 	if(delta_distance<0)
 		rotation_speed= -rotation_speed;
 	//Check if speed is too high
 	//for acceleration
 	printf("go_dist %f %f %f\r\n",delta_distance,rotation_speed,ratio);
-	if((rotation_speed - wheel_speed)*1000000/(float)robot_parameter.period()>acceleration_limit)
+	uint32_t temp_enc_time=enc_time_diff/10000;
+	if((rotation_speed - wheel_speed)*1000000/(float)robot_parameter.period()>accel_max)
 	{
-		rotation_speed=acceleration_limit*(float)robot_parameter.period()/1000000+wheel_speed;
+		rotation_speed=accel_max*(float)robot_parameter.period()/1000000+wheel_speed;
 	}
-	else if((rotation_speed - wheel_speed)*1000000/(float)robot_parameter.period()<-acceleration_limit)
+	else if((rotation_speed - wheel_speed)*1000000/(float)robot_parameter.period()<-accel_max)
 	{
-		rotation_speed=-acceleration_limit*(float)robot_parameter.period()/1000000+wheel_speed;
+		rotation_speed=-accel_max*(float)robot_parameter.period()/1000000+wheel_speed;
 	}
 	//for deceleration
-	// if(rotation_speed>delta_distance*acceleration_limit)
+	// if(rotation_speed>delta_distance*accel_max)
 	if(delta_distance>0)
 	{
-		if(rotation_speed>sqrt(2* delta_distance/acceleration_limit) *acceleration_limit)
+		if(rotation_speed>sqrt(2* delta_distance/accel_max) *accel_max)
 		{
-			rotation_speed=sqrt(2* delta_distance/acceleration_limit)*acceleration_limit;
+			rotation_speed=sqrt(2* delta_distance/accel_max)*accel_max;
 		}
-		if(-rotation_speed>sqrt(2* delta_distance/acceleration_limit) *acceleration_limit)
+		if(-rotation_speed>sqrt(2* delta_distance/accel_max) *accel_max)
 		{
-			rotation_speed=-sqrt(2* delta_distance/acceleration_limit)*acceleration_limit;
+			rotation_speed=-sqrt(2* delta_distance/accel_max)*accel_max;
 		}
 	}
 	else
 	{
-		if(rotation_speed>sqrt(2* -delta_distance/acceleration_limit) *acceleration_limit)
+		if(rotation_speed>sqrt(2* -delta_distance/accel_max) *accel_max)
 		{
-			rotation_speed=sqrt(2* -delta_distance/acceleration_limit)*acceleration_limit;
+			rotation_speed=sqrt(2* -delta_distance/accel_max)*accel_max;
 		}
-		if(-rotation_speed>sqrt(2* -delta_distance/acceleration_limit) *acceleration_limit)
+		if(-rotation_speed>sqrt(2* -delta_distance/accel_max) *accel_max)
 		{
-			rotation_speed=-sqrt(2* -delta_distance/acceleration_limit)*acceleration_limit;
+			rotation_speed=-sqrt(2* -delta_distance/accel_max)*accel_max;
 		}
 	} 
 	printf("go_dist %f %f %f\r\n",delta_distance,rotation_speed, ratio);
@@ -194,17 +230,17 @@ void Control::robot_go_distance(float distance, float ratio){
 		}
 	}
 	//check both wheels can be fast enough, else reduce both speeds
-	if(left_speed>speed_limit || left_speed<-speed_limit)
+	if(left_speed>speed_max || left_speed<-speed_max)
 	{
-		right_speed = right_speed *speed_limit/left_speed;
-		left_speed = speed_limit;
+		right_speed = right_speed *speed_max/left_speed;
+		left_speed = speed_max;
 	}
-	if(right_speed>speed_limit || right_speed<-speed_limit)
+	if(right_speed>speed_max || right_speed<-speed_max)
 	{
-		left_speed = left_speed *speed_limit/right_speed;
-		right_speed = speed_limit;
+		left_speed = left_speed *speed_max/right_speed;
+		right_speed = speed_max;
 	}
-		
+	printf("will wheel speed  %f %f %\r\n",left_speed,right_speed);
 	set_speed(left_t , left_speed );	
 	set_speed(right_t , right_speed );
 }
@@ -222,11 +258,11 @@ void Control::print_speed(){
 }
 
 void Control::run_wheel(wheel_t wheel){
-	float pid_p = 0.001;
-	float pid_i = 0.000;
-	float pid_d = -0.001;
+	// float pid_p = 0.01;
+	// float pid_i = 0.000;
+	// float pid_d = -0.05;
 	float delta_speed = speed[wheel] - position.speed(wheel);
-	pwm_v[wheel]+= pid_p * delta_speed + pid_i *(prev_delta_speed[wheel] + delta_speed) + pid_d *(prev_delta_speed[wheel] - delta_speed) ;
+	pwm_v[wheel]+= pid_speed[0] * delta_speed + pid_speed[1] *(prev_delta_speed[wheel] + delta_speed) + pid_speed[2] *(prev_delta_speed[wheel] - delta_speed) ;
 	if(pwm_v[wheel]<-1)
 		pwm_v[wheel]=-1;
 	else if (pwm_v[wheel]>1)
@@ -253,7 +289,8 @@ void Control::set_destination(coordinates_t destination_coordinates)
 	destination.y     = destination_coordinates.y;
 	destination.theta = destination_coordinates.theta;
 }
-coordinates_t Control::get_destination(){
+coordinates_t Control::get_destination()
+{
 	return destination;
 }
 
@@ -291,14 +328,13 @@ void Control::distance_direct_arc( coordinates_t stop, float* distance, float* r
 		return;
 	}
 	float d = sqrt(pow(stop.x,2)+pow(stop.y,2));
-//	float r=d*sin(theta_in)/sin(theta_side);
+
 	float r=d/(2*cos(theta_in));
 	
-	// printf("distance_direct_arc %f %f %f %f\r\n",r,d,theta_in,theta_side);	
-	// printf("STOP %f %f \r\n",stop.x,stop.y);	
+	
 	switch(dir)
 	{
-	case force_frontward:
+	case force_forward:
 		if(stop.y>=0)
 		{
 			printf("1 %f %f %f \r\n",d,theta_side,r);

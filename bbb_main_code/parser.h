@@ -6,7 +6,8 @@
 using namespace std;
 
 
-#define myfifo "/tmp/robot_com"
+#define myfifo_in "/tmp/robot_com_in"
+#define myfifo_out "/tmp/robot_com_out"
 
 
 static void *parser_function(void *arg);
