@@ -24,7 +24,7 @@ extern Position position;
 extern Control control;
 extern parameter robot_parameter;
 
-mutex motor_mutex;
+
 
 asserv_type_t Asserv::get_asserv_mode(){
 	return asserv_mode;
@@ -58,7 +58,6 @@ FILE *f ;
 		float dist;
 		float ratio;
 		//couleur("34");
-		printf("asserv is unlocked\r\n");
 		switch(asserv.get_asserv_mode())
 		{
 			case(asserv_queue):
@@ -108,10 +107,10 @@ FILE *f ;
 			case(asserv_xy):
 
 				control.distance_arc(position.get_coordinates(),control.get_destination(),&dist,&ratio,asserv.get_direction());
-				printf("distanceXY %f %f  ",dist,ratio);
+//				printf("distanceXY %f %f  ",dist,ratio);
 				if(dist*dist <0.4)
 				{
-					printf("exit  asserv_xy, dist = %f\r\n",dist);
+					printf("exit  asserv_xy to asserv_theta\r\n");
 					asserv.set_asserv_mode(asserv_theta);
 				}
 				couleur("0");
@@ -119,16 +118,17 @@ FILE *f ;
 				break;
 			case(asserv_theta):
 				control.go_angle();
-				printf("asserv_theta %d");
+//				printf("asserv_theta %d");
 				if(pow(control.get_destination().theta - position.theta(),2) <0.000001)
 					{
-						asserv.set_arrived(true);
+                        printf("exit  asserv_theta to asserv_no\r\n");
+                        asserv.set_asserv_mode(asserv_no);
 					}
 				break;
 			case(asserv_no):
 				asserv.set_arrived(true);
-				// control.set_speed(left_t, 0);
-				// control.set_speed(right_t, 0);
+				control.set_speed(left_t, 0);
+				control.set_speed(right_t, 0);
 
 				couleur("0");
 				break;
@@ -143,10 +143,11 @@ static void *run_wheels(void *arg)
 {
 	while(rc_get_state() != EXITING)
 	{
-		motor_mutex.lock();
-		control.run_wheel(left_t);
-		control.run_wheel(right_t);
-		motor_mutex.unlock();
+		if(asserv.motor_get_lock()==false)
+        {
+            control.run_wheel(left_t);
+            control.run_wheel(right_t);
+        }
 		rc_usleep(robot_parameter.period());
 	}
 	pthread_exit(NULL);
@@ -275,11 +276,14 @@ void Asserv::set_pwm(int motor, float pwm){
 }
 void Asserv::motor_lock(){
 	printf("lock asserv\r\n");
-	motor_mutex.lock();
+	motor_mutex=true;
 }
 void Asserv::motor_unlock(){
 	printf("unlock asserv\r\n");
-	motor_mutex.unlock();
+	motor_mutex=false;
+}
+bool Asserv::motor_get_lock(){
+	return motor_mutex;
 }
 
 void Asserv::force_direction(asserv_direction_t direction_value)

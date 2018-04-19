@@ -68,7 +68,7 @@ langage:
 -X regler vitesse angulaire, acceleration angulaire (-m=0 lineaire, -m=1 angluaire dist, x=vitesse, y=Acceleration)
 -Y regler position
 -V obtenir vitesse
--B pwm d'un moteur (-x PWM, -m0-1=desactiver asserv -m0=reactiver asserv -mn moteur n)
+-B pwm d'un moteur (-x PWM, -m-1=desactiver asserv -m0=reactiver asserv -mn moteur n)
 
 */
 
@@ -103,8 +103,8 @@ static void *parser_function(void *arg){
 
 
 	char str1[80];
-	char *argv[80];
-	int argc=0;
+	char *argv_[80];
+	int argc_=0;
 	
 	float   x_arg;
 	float   y_arg;
@@ -115,8 +115,8 @@ static void *parser_function(void *arg){
 
 	
 	
-	argv[0]=&str1[0];
-	argc++;
+	argv_[0]=&str1[0];
+	argc_++;
 	while(rc_get_state() != EXITING){
 		fd1 = open(myfifo_in,O_RDONLY|O_NONBLOCK);		
 		size = read(fd1, str1, 80);
@@ -124,24 +124,37 @@ static void *parser_function(void *arg){
 		if(size>0)
 		{
 //on nettoie la chaine
-			printf("receive : %s",myfifo_in);
+			printf("\n\nreceive : %s\r\n",str1);
+            
 
-			argc=0;
+			argc_=0;
 			for(i=0;(i<size);i++)
 			{
-				if((str1[i]=='-')||(i==0))
+				if(i==0)
 				{
-					argv[argc]=&str1[i];
-					argc++;
+					argv_[argc_]=&str1[i];
+					argc_++;
 				}
+                else if((str1[i-1]==' ')&&(str1[i]=='-'))
+				{
+                    printf("nouvel arg: %s",&str1[i]);
+					argv_[argc_]=&str1[i];
+					argc_++;
+				}
+
 				if(str1[i]=='\r'||str1[i]=='\n')
 					str1[i]='\0';
 			}
-//on parse la chaine
+
+            for (i = 0; i < size; i ++) {
+                printf(" %2x", str1[i]);
+            }
+                printf("\r\n");
+
+                //on parse la chaine
 			int c, in;
 			float in_f;
 			extern char *optarg;
-			optind=1;
 			float   x_arg;
 			float   y_arg;
 			float   theta_arg;
@@ -150,8 +163,14 @@ static void *parser_function(void *arg){
 			bool action_done=false;
 			action_t action=none_;
 			bool absolute= true;
+            
+			optind=1;
+            
+            printf("on a %d arguments", argc_);
 
-		 	while ((c = getopt(argc, argv, "x:y:t:m:rGTDSPEALEXYVB")) != -1){
+		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVB")) != -1);
+            optind=1;
+		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVB")) != -1){
 				switch (c){
 				case 'x': // motor channel option
 					x_arg = atof(optarg);
@@ -183,6 +202,7 @@ static void *parser_function(void *arg){
 					{
 						action=go_;
 						action_done=true;
+						printf("go_\n");
 					}
 					else
 					{
@@ -194,6 +214,7 @@ static void *parser_function(void *arg){
 					if(action_done==false)
 					{
 						action=turn_;
+						printf("config pwm\n");
 						action_done=true;
 					}
 					else
@@ -220,6 +241,7 @@ static void *parser_function(void *arg){
 					{
 						action=position_;
 						action_done=true;
+						printf("position_\n");
 					}
 					else
 					{
@@ -232,6 +254,7 @@ static void *parser_function(void *arg){
 					{
 						action=state_;
 						action_done=true;
+						printf("state_\n");
 					}
 					else
 					{
@@ -244,6 +267,7 @@ static void *parser_function(void *arg){
 					{
 						action=add_;
 						action_done=true;
+						printf("add_\n");
 					}
 					else
 					{
@@ -256,6 +280,7 @@ static void *parser_function(void *arg){
 					{
 						action=launch_;
 						action_done=true;
+						printf("launch_\n");
 					}
 					else
 					{
@@ -269,6 +294,7 @@ static void *parser_function(void *arg){
 					{
 						action=erase_;
 						action_done=true;
+						printf("erase_\n");
 					}
 					else
 					{
@@ -281,6 +307,7 @@ static void *parser_function(void *arg){
 					{
 						action=pid_;
 						action_done=true;
+						printf("pid_\n");
 					}
 					else
 					{
@@ -293,6 +320,7 @@ static void *parser_function(void *arg){
 					{
 						action=speed_accel_set_;
 						action_done=true;
+						printf("speed_accel_set_\n");
 					}
 					else
 					{
@@ -305,6 +333,7 @@ static void *parser_function(void *arg){
 					{
 						action=set_pos_;
 						action_done=true;
+						printf("set_pos_\n");
 					}
 					else
 					{
@@ -317,6 +346,7 @@ static void *parser_function(void *arg){
 					{
 						action=get_speed_;
 						action_done=true;
+						printf("get_speed_\n");
 					}
 					else
 					{
@@ -329,11 +359,12 @@ static void *parser_function(void *arg){
 					{
 						action=motor_pwm_;
 						action_done=true;
+						printf("\nmotor_pwm_ %d\n",optind);
 					}
 					else
 					{
 						action=none_;
-						printf("trop d'actions demandées\n");
+						printf("trop d'actions demandées %d\n",optind);
 					}
 					break;
 				default:
@@ -409,14 +440,18 @@ static void *parser_function(void *arg){
 					if (absolute==false)
 					{
 						coordinates_t dest,add;
-						dest = control.get_destination();
+						dest.x=position.x();
+						dest.y=position.y();
+						dest.theta=position.theta();
 						add.x=x_arg;
 						add.y=y_arg;
 						add.theta=theta_arg;
+                        printf("going from %f %f %f with %f %f %f\n", dest.x,dest.y,dest.theta, add.x,add.y,add.theta );
 						asserv.add_coordinate(&dest,dest,add);
-						x_arg=add.x;
-						y_arg=add.y;
-						theta_arg=add.theta;
+                        printf("going to %f %f %f\n", dest.x,dest.y,dest.theta);
+						x_arg=dest.x;
+						y_arg=dest.y;
+						theta_arg=dest.theta;
 					}
 					switch(mode_arg)
 					{
@@ -525,14 +560,35 @@ static void *parser_function(void *arg){
 				close(fd1);
 				break;
 
+			case state_: // motor channel option
+                if (asserv.is_arrived()==true)
+                    len= sprintf (buffer, "yes");
+                else
+                    len= sprintf (buffer, "no");
+				fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+				write(fd1,buffer,len);
+				close(fd1);
+				break;
+
 			case set_pos_: // motor channel option
-			
-				if(var_init&(0b00000001)!=0)
+				if((var_init&(0b00000001))!=0)
+				{
 					position.update_x(x_arg);
-				if(var_init&(0b00000010)!=0)
+					printf("update x %f \n",x_arg);			
+				}
+				if((var_init&(0b00000010))!=0)
+				{
 					position.update_y(y_arg);
-				if(var_init&(0b00000100)!=0)
+					printf("update y %f \n",y_arg);			
+				}
+				if((var_init&(0b00000100))!=0)
+				{
 					position.update_theta(theta_arg);
+					printf("update theta %f \n",theta_arg);			
+				}
+                fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+                write(fd1, "ok", strlen("ok")+1);
+                close(fd1);
 				break;			
 			case get_speed_: // motor channel option
 				len= sprintf (buffer, "%f %f", position.speed(left_t),position.speed(right_t));
@@ -550,6 +606,10 @@ static void *parser_function(void *arg){
 					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
 					write(fd1, "ko", strlen("ko")+1);
 					close(fd1);
+   					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+					write(fd1, "ok", strlen("ok")+1);
+					close(fd1);
+
 					break;
 				}
 				else
@@ -570,9 +630,6 @@ static void *parser_function(void *arg){
 						if(((~var_init)&(0b00001001))!=0)
 						{
 							printf("manque argument\n");
-							fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-							write(fd1, "ko", strlen("ko")+1);
-							close(fd1);
 							break;
 						}
 						asserv.set_pwm(mode_arg, x_arg);
@@ -580,12 +637,16 @@ static void *parser_function(void *arg){
 					default:
 						break;
 					}
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ok", strlen("ok")+1);
-					close(fd1);
+                    fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+                    write(fd1, "ok", strlen("ok")+1);
+                    close(fd1);
+
 				}
 				break;			
 			default:
+				fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+				write(fd1, "ko nothing to do", strlen("ko nothing to do")+1);
+				close(fd1);
 				break;
 			}
 			printf("parsing finished");

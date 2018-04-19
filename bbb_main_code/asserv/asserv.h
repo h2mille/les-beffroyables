@@ -47,6 +47,7 @@ class Asserv{
 	void set_pwm(int motor,float pwm);
 	void motor_lock();
 	void motor_unlock();
+	bool motor_get_lock();
 
 	void force_direction(asserv_direction_t direction_value);
 	asserv_direction_t get_direction();
@@ -65,7 +66,7 @@ class Asserv{
 	
 	asserv_direction_t direction;
 	
-
+    bool motor_mutex;
 	pthread_t position_thread;
 	pthread_t control_thread;
 	pthread_t wheels_thread;
