@@ -83,8 +83,12 @@ void Control::go_angle(){
 
 	// float rotation_speed_limit =3;
 	// float rotation_acceleration_limit =8;
-	float delta_angle = destination.theta-position.theta();
-	float real_rotation_speed = position.speed_coordinates().theta;
+	float delta_angle = (destination.theta-position.theta());
+	while(delta_angle>PI)
+		delta_angle-=2*PI;
+	while(delta_angle<-PI)
+		delta_angle+=2*PI;
+	float real_rotation_speed = (position.speed_coordinates().theta+prev_rotation_speed)/2;
 
 	float rotation_speed= rot_speed_max;
 	if(delta_angle<0)

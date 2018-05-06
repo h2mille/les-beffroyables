@@ -5,16 +5,22 @@ using namespace std;
 #include "parameter.h"
 #include "types.h"
 
-#ifdef USE_GYRO
+//#ifdef USE_GYRO
 rc_imu_data_t data;
-#endif
+//#endif
 
 int prev_L =0;
 int prev_R =0;
 extern parameter robot_parameter;
 uint64_t enc_time_from_last_call;
 uint32_t enc_time_diff;
+#ifndef USE_GYRO
+float theta_gyro;
+#endif
 #include <inttypes.h>
+float gyro_offset;
+
+
 void encoder::get_move(coordinates_t* coordinates_move,coordinates_t* speed_coordinates, float* speed, float* distance)
 {
 	uint64_t time_temp=rc_nanos_since_boot();
@@ -33,11 +39,18 @@ void encoder::get_move(coordinates_t* coordinates_move,coordinates_t* speed_coor
 	
 	rc_imu_data_t data; //struct to hold new data
 	rc_read_gyro_data(&data);
-	printf("GYRO %6.6f",data.gyro[2]);
+//	printf("GYRO %6.6f",data.gyro[2]);
 	coordinates_move->theta = (-data.gyro[2]*90)-0.0008;
 	coordinates_move->theta *=((float)enc_time_diff);
 #else
+	rc_read_gyro_data(&data);
+    float temp;
+	// printf("GYRO %6.6f\t%6.6f\t%6.6f\t%6.6f\t%6.6f\t%6.6f\t\r\n",data.accel[0],data.accel[1],data.accel[2],data.gyro[0],data.gyro[1],data.gyro[2]);
+//    printf("%f",data.gyro[1]);
+    temp=((-data.gyro[1]*DEG_TO_RAD)+0.0116)*((float)enc_time_diff)/1000000000;
+	theta_gyro+=temp;
 
+    
 	coordinates_move->theta = (R_mm - L_mm)/robot_parameter.wheel_distance();
 #endif
 	coordinates_move->x = ((L_mm + R_mm)/2) * sin(coordinates_move->theta);

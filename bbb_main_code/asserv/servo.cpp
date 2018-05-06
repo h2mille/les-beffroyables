@@ -29,18 +29,44 @@ static void *servo_computation(void *arg){
 		if(self->is_enable())
 		{
 			rc_send_servo_pulse_normalized(self->get_id(),self->get_pos());
+            self->CheckToggle();
 		}
 		rc_usleep(1000000/50);
 	}
+        
+        
 	pthread_exit(NULL);
 }
 
-Servo::Servo(uint8_t id):id_servo(id),init_value(false)
+
+Servo::Servo(uint8_t id):id_servo(id),init_value(false),toggle(false)
 {
 }
 
 Servo::~Servo(){
 	pthread_join(thread_id, NULL);
+}
+
+void Servo::CheckToggle()
+{
+    if(toggle==true)
+    {
+        count++;
+        if(count>period)
+        {
+            count=0;
+            position=-position;
+        }
+    }
+}
+
+void Servo::set_toggle(bool value){
+    toggle=value;
+    count=0;
+}
+
+void Servo::set_period(float value){
+    period=(int)(value*50);
 }
 
 void Servo::init(bool enable_=true)

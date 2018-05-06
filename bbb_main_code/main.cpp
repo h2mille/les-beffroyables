@@ -24,9 +24,9 @@ extern Asserv asserv;
 extern parameter robot_parameter;
 extern Parser parser;
 
-#ifdef USE_GYRO
+//#ifdef USE_GYRO
     extern rc_imu_data_t data;
-#endif
+//#endif
 void sigint_handler(int sig)
 {
     /*do something*/
@@ -79,10 +79,10 @@ int main(){
 
 	signal(SIGINT, sigint_handler);
 	rc_initialize();
-#ifdef USE_GYRO
+//#ifdef USE_GYRO
  	rc_imu_config_t conf = rc_default_imu_config();
 	rc_initialize_imu(&data, conf);
-#endif
+//#endif
 	asserv.asserv_init();
 	printf("handler configured \r\n");
 	
@@ -92,8 +92,6 @@ int main(){
 	parser.parser_init();
 	
 	coordinates_t destination;
-
-
 	coordinates_t dot;
 	
 	// while(rc_get_state() != EXITING )
@@ -142,9 +140,9 @@ int main(){
 		asserv.go_destination();
 		
 	}
-#ifdef USE_GYRO
+//#ifdef USE_GYRO
 	rc_power_off_imu();
-#endif
+//#endif
 	rc_cleanup();
 
 }

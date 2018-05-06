@@ -16,6 +16,9 @@ class Servo{
     public:
 		Servo(uint8_t id);
 		~Servo();
+        void CheckToggle();
+        void set_toggle(bool value);
+        void set_period(float value);
 		void init(bool enable);
 		void set_pos(float pos);
 		float get_pos();
@@ -30,6 +33,9 @@ class Servo{
 		bool init_value;
 		bool enable_value;
 		pthread_t thread_id;
+        bool toggle;
+        int count;
+        int period;
 };
 
 #endif

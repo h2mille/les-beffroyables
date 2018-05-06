@@ -39,21 +39,26 @@ extern Servo servo7;
 extern Asserv asserv;
 extern Position position;
 extern Control control;
+
+#ifndef USE_GYRO
+extern float theta_gyro;
+#endif
+
 /*
 langage:
 -x valeur en x
 -y valeur en y
 -t valeur en theta
--m mode de déplacement (avant:1, arrière:-1; indifferent :0)
+-m mode 
 
 -r relatif
 
 
--G aller à un point donné (x,y,t,m,a/r)
+-G aller à un point donné (x,y,t,m,a/r) (m avant:1, arrière:-1; indifferent :0)
 -T tourner à un angle donné (t,a/r)
 
 
--S Tourner le servo (t, de -1.5 à +1.5)
+-S Tourner le servo (t, de -1.5 à +1.5) -r toogle position, -x period
 -P afficher la postion 
 -E etat actuel de l'asservissement
 
@@ -61,15 +66,14 @@ langage:
 -L lancer une trajectoire (-m)
 -E efface la trajectoire
 
-- stopper
-- reprendre
+-Z stopper (-m=0 stop -m=1 reprendre)
 
 -D regler pid (-m=0 speed, -m=1 dist, x=P, y=I,t=D)
--X regler vitesse angulaire, acceleration angulaire (-m=0 lineaire, -m=1 angluaire dist, x=vitesse, y=Acceleration)
+-X regler vitesse angulaire, acceleration angulaire (-m=0 lineaire, -m=1 angluaire, x=vitesse, y=Acceleration)
 -Y regler position
 -V obtenir vitesse
 -B pwm d'un moteur (-x PWM, -m-1=desactiver asserv -m0=reactiver asserv -mn moteur n)
-
+-H gyro (m=1 read, m=0 write t value)
 */
 
 enum action_t
@@ -87,6 +91,8 @@ enum action_t
 	set_pos_,
 	get_speed_,
 	motor_pwm_,
+	stop_,
+	gyro_,
 	none_
 };
 
@@ -121,6 +127,7 @@ static void *parser_function(void *arg){
 		fd1 = open(myfifo_in,O_RDONLY|O_NONBLOCK);		
 		size = read(fd1, str1, 80);
 		close(fd1);
+		rc_usleep(10000);
 		if(size>0)
 		{
 //on nettoie la chaine
@@ -168,9 +175,9 @@ static void *parser_function(void *arg){
             
             printf("on a %d arguments", argc_);
 
-		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVB")) != -1);
+		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVBHZ")) != -1);
             optind=1;
-		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVB")) != -1){
+		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVBHZ")) != -1){
 				switch (c){
 				case 'x': // motor channel option
 					x_arg = atof(optarg);
@@ -367,6 +374,32 @@ static void *parser_function(void *arg){
 						printf("trop d'actions demandées %d\n",optind);
 					}
 					break;
+				case 'Z': // motor channel option
+					if(action_done==false)
+					{
+						action=stop_;
+						action_done=true;
+						printf("\nmotor_pwm_ %d\n",optind);
+					}
+					else
+					{
+						action=none_;
+						printf("trop d'actions demandées %d\n",optind);
+					}
+					break;
+				case 'H': // motor channel option
+					if(action_done==false)
+					{
+						action=gyro_;
+						action_done=true;
+						printf("\nmotor_pwm_ %d\n",optind);
+					}
+					else
+					{
+						action=none_;
+						printf("trop d'actions demandées %d\n",optind);
+					}
+					break;
 				default:
 					break;
 				}
@@ -393,28 +426,87 @@ static void *parser_function(void *arg){
 					{
 					case(0):
 						servo0.set_pos(theta_arg);
+                        if(absolute==false)
+                        {
+                            servo0.set_toggle(true);
+                            servo0.set_period(x_arg);
+                            printf("config 1 \r\n");
+                        }
+                        else
+                        {
+                            servo0.set_toggle(false);
+                            printf("config 2 \r\n");
+                        }
 						break;
 					case(1):
 						servo1.set_pos(theta_arg);
+                        if(absolute==false)
+                        {
+                            servo1.set_toggle(true);
+                            servo1.set_period(x_arg);
+                        }
+                        else
+                            servo1.set_toggle(false);
 						break;
 					case(2):
 						servo2.set_pos(theta_arg);
-						printf("on essaie le servo 2 à la valeur %f ", theta_arg);
+                        if(absolute==false)
+                        {
+                            servo2.set_toggle(true);
+                            servo2.set_period(x_arg);
+                        }
+                        else
+                            servo2.set_toggle(false);
 						break;
 					case(3):
 						servo3.set_pos(theta_arg);
+                        if(absolute==false)
+                        {
+                            servo3.set_toggle(true);
+                            servo3.set_period(x_arg);
+                        }
+                        else
+                            servo3.set_toggle(false);
 						break;
 					case(4):
 						servo4.set_pos(theta_arg);
+                        if(absolute==false)
+                        {
+                            servo4.set_toggle(true);
+                            servo4.set_period(x_arg);
+                        }
+                        else
+                            servo4.set_toggle(false);
 						break;
 					case(5):
 						servo5.set_pos(theta_arg);
+                        if(absolute==false)
+                        {
+                            servo5.set_period(x_arg);
+                            servo5.set_toggle(true);
+                        }
+                        else
+                            servo5.set_toggle(false);
 						break;
 					case(6):
 						servo6.set_pos(theta_arg);
+                        if(absolute==false)
+                        {
+                            servo6.set_period(x_arg);
+                            servo6.set_toggle(true);
+                        }
+                        else
+                            servo6.set_toggle(false);
 						break;
 					case(7):
 						servo7.set_pos(theta_arg);
+                        if(absolute==false)
+                        {
+                            servo7.set_period(x_arg);
+                            servo7.set_toggle(true);
+                        }
+                        else
+                            servo7.set_toggle(false);
 						break;
 					default:
 					break;
@@ -606,9 +698,6 @@ static void *parser_function(void *arg){
 					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
 					write(fd1, "ko", strlen("ko")+1);
 					close(fd1);
-   					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ok", strlen("ok")+1);
-					close(fd1);
 
 					break;
 				}
@@ -643,6 +732,68 @@ static void *parser_function(void *arg){
 
 				}
 				break;			
+			case stop_: // motor channel option
+			
+				printf("on configure le pid\n");
+				if(((~var_init)&(0b00001000))!=0)
+				{
+					printf("manque argument\n");
+					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+					write(fd1, "ko", strlen("ko")+1);
+					close(fd1);
+
+					break;
+				}
+				else
+				{
+					switch (mode_arg)
+					{
+					case 0:
+						asserv.set_STOP(false);
+						break;
+					case 1:
+						asserv.set_STOP(true);
+						break;
+					default:
+						break;
+					}
+                    fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+                    write(fd1, "ok", strlen("ok")+1);
+                    close(fd1);
+
+				}
+				break;			
+			case gyro_: // motor channel option
+			
+				if(((~var_init)&(0b00001000))!=0)
+				{
+					printf("manque argument\n");
+					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+					write(fd1, "ko", strlen("ko")+1);
+					close(fd1);
+					break;
+				}
+				else
+				{
+					switch (mode_arg)
+					{
+					case 0:
+                        theta_gyro = theta_arg;
+					case 1:
+                        len= sprintf (buffer, "%f", theta_gyro);
+                        fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+                        write(fd1,buffer,len);
+                        close(fd1);
+						break;
+					default:
+						break;
+					}
+                    fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+                    write(fd1, "ok", strlen("ok")+1);
+                    close(fd1);
+
+				}
+				break;			
 			default:
 				fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
 				write(fd1, "ko nothing to do", strlen("ko nothing to do")+1);
@@ -660,7 +811,6 @@ static void *parser_function(void *arg){
 				// rc_usleep(100000);
 			// }
 		}
-		rc_usleep(10000);
 
 	}
 

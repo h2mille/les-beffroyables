@@ -18,10 +18,10 @@ typedef struct{
 }move_t;
 
 typedef enum{
-	asserv_queue,
-	asserv_xy,
-	asserv_theta,
-	asserv_no
+	asserv_queue =3,
+	asserv_xy = 2,
+	asserv_theta = 1,
+	asserv_no = 0
 }asserv_type_t;
 
 static void *position_computation(void *arg);
@@ -48,6 +48,9 @@ class Asserv{
 	void motor_lock();
 	void motor_unlock();
 	bool motor_get_lock();
+    void set_STOP(bool value);
+    bool get_STOP();
+
 
 	void force_direction(asserv_direction_t direction_value);
 	asserv_direction_t get_direction();
@@ -70,6 +73,7 @@ class Asserv{
 	pthread_t position_thread;
 	pthread_t control_thread;
 	pthread_t wheels_thread;
+    bool STOP;
 	
 
 };
