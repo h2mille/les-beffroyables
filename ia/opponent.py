@@ -1,5 +1,5 @@
 import time
-import daemon
+#import daemon
 from threading import Thread
 import serial
 import robot
