@@ -29,16 +29,16 @@ def check_opponent():
     return line
 
 
-with open("/tmp/pos", "r") as f:
-    fd = f.fileno()
-    flag = fcntl.fcntl(fd, fcntl.F_GETFL)
-    fcntl.fcntl(fd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
-    flag = fcntl.fcntl(fd, fcntl.F_GETFL)
-    if flag & os.O_NONBLOCK:
-        print "O_NONBLOCK!!"
+# with open("/tmp/pos", "r") as f:
+    # fd = f.fileno()
+    # flag = fcntl.fcntl(fd, fcntl.F_GETFL)
+    # fcntl.fcntl(fd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
+    # flag = fcntl.fcntl(fd, fcntl.F_GETFL)
+    # if flag & os.O_NONBLOCK:
+        # print "O_NONBLOCK!!"
 
 
-def check_danger():
+def check_danger2():
     success = False
     text=""
 #    with robot.file_lock:
@@ -73,6 +73,16 @@ def check_danger():
     if ((dir<0) and ((back_left==1) or (back_right==1))):
         return True
     return False
+
+def check_danger():
+    with serial.Serial('/dev/ttyS2', 115200 , timeout=0.1) as ser:
+        line = ser.readline()
+    print("line:",line)
+    if(line =="1\r\n"):
+        return True;
+    else:
+        return False
+    
 
 def is_arrived():
     success = False

@@ -144,7 +144,7 @@ void add_coordinates(float* fisrt_coordinates,float* second_coordinates, float* 
 }
 
 int quickReadByteUntil(char c,char* char_array, int size)
-{
+{                   
   char d;
   int e=0;
   do{
@@ -165,6 +165,7 @@ void add_fifo(){
   }
   for(i=0;i<SENSOR_NUMBER;i++)
   {
+    Serial.print("I got something");
     if(temp[i]>2500)
     {
       if(no_detect[i]<NO_DETECT_THRETHOLD)
@@ -258,8 +259,8 @@ void loop() {
     uint8_t result=0;
     bool check;
 
-//    Serial.print("analog value: ");
-//    Serial.println(analogRead(A0));
+    Serial.print("analog value: ");
+    Serial.println(analogRead(A0));
 
     temp=quickReadByteUntil('\0', incomingBytes, sizeof(incomingBytes) / sizeof(char) );
     incomingBytes[temp]='\0';
