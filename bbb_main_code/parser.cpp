@@ -1,4 +1,5 @@
 
+
 #include <iostream>
 #include <stdio.h>
 #include <unistd.h>
@@ -14,6 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <mutex>
 
 using namespace std;
 
@@ -43,6 +45,7 @@ extern Control control;
 #ifndef USE_GYRO
 extern float theta_gyro;
 #endif
+
 
 /*
 langage:
@@ -98,11 +101,15 @@ enum action_t
 
 Parser parser;
 
+int fd1;
+mutex read_lock; 
+mutex write_lock; 
+
 static void *parser_function(void *arg){ 
 	umask(0000);
     mkfifo(myfifo_in, 0666);
     mkfifo(myfifo_out, 0666);
-	 int fd1;
+	 int fd2;
 	// fd_set fds;
 	// timeval tv ={0,100};//(sec,usec)
 	int size,i;
@@ -116,6 +123,7 @@ static void *parser_function(void *arg){
 	float   y_arg;
 	float   theta_arg;
 	int     mode_arg;
+    int prev_file_descriptor=-1;
 	
 	
 
@@ -123,11 +131,20 @@ static void *parser_function(void *arg){
 	
 	argv_[0]=&str1[0];
 	argc_++;
+    printf("ready to read\r\n");
+
+    fd_set set;
+    fd1 = open(myfifo_in,O_RDWR | O_NONBLOCK);
+    FD_ZERO(&set);
+    FD_SET(fd1, &set);
 	while(rc_get_state() != EXITING){
-		fd1 = open(myfifo_in,O_RDONLY|O_NONBLOCK);		
+        printf("ready to read again\r\n");
+        select(fd1+1, &set, NULL, NULL, NULL);
 		size = read(fd1, str1, 80);
-		close(fd1);
-		rc_usleep(10000);
+        printf("read: %s",str1);
+        // while((fd1==prev_file_descriptor))
+            // rc_usleep(1000);
+        // prev_file_descriptor=fd1;
 		if(size>0)
 		{
 //on nettoie la chaine
@@ -153,10 +170,15 @@ static void *parser_function(void *arg){
 					str1[i]='\0';
 			}
 
+            printf("\r\n", str1[i]);
             for (i = 0; i < size; i ++) {
                 printf(" %2x", str1[i]);
             }
-                printf("\r\n");
+            printf("\r\n");
+            for (i = 0; i < size; i ++) {
+                printf("  %c", str1[i]);
+            }
+            printf("\r\n");
 
                 //on parse la chaine
 			int c, in;
@@ -415,9 +437,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00001100))!=0)
 				{
 					printf("mettre une valeur d'angle ou quel servo dans mode -m\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 					break;
 				}
 				else
@@ -511,9 +533,9 @@ static void *parser_function(void *arg){
 					default:
 					break;
 					}
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ok", strlen("ok")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ok", strlen("ok")+1);
+					close(fd2);
 				}
 				break;
 			case go_: // motor channel option
@@ -522,9 +544,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00001111))!=0)
 				{
 					printf("indiquer x,y,theta,et mode (+1,0,-1 pour avant, indifferent ou arrière -m\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 					break;
 				}
 				else
@@ -560,9 +582,9 @@ static void *parser_function(void *arg){
 						printf("not changing direction, wrong choice");
 					}
 					asserv.go_destination(x_arg,y_arg,theta_arg);					
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ok", strlen("ok")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ok", strlen("ok")+1);
+					close(fd2);
 				}
 				break;
 			case turn_: // motor channel option
@@ -570,9 +592,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00000100))!=0)
 				{
 					printf("indiquer theta\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 					break;
 				}
 				else
@@ -581,9 +603,9 @@ static void *parser_function(void *arg){
 						theta_arg+=position.theta();
 					asserv.go_angle(theta_arg);					
 
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ok", strlen("ok")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ok", strlen("ok")+1);
+					close(fd2);
 				}
 				break;
 			case pid_: // motor channel option
@@ -592,9 +614,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00001111))!=0)
 				{
 					printf("manque argument\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 					break;
 				}
 				else
@@ -610,9 +632,9 @@ static void *parser_function(void *arg){
 					default:
 						break;
 					}
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ok", strlen("ok")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ok", strlen("ok")+1);
+					close(fd2);
 				}
 				break;
 			case speed_accel_set_: // motor channel option
@@ -621,9 +643,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00001011))!=0)
 				{
 					printf("manque argument\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 					break;
 				}
 				else
@@ -639,17 +661,17 @@ static void *parser_function(void *arg){
 					default:
 						break;
 					}
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ok", strlen("ok")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ok", strlen("ok")+1);
+					close(fd2);
 				}
 				break;			
 			case position_: // motor channel option
 			
 				len= sprintf (buffer, "%f %f %f", position.x(),position.y(),position.theta());
-				fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-				write(fd1,buffer,len);
-				close(fd1);
+				fd2 = open(myfifo_out,O_WRONLY);
+				write(fd2,buffer,len);
+				close(fd2);
 				break;
 
 			case state_: // motor channel option
@@ -657,9 +679,9 @@ static void *parser_function(void *arg){
                     len= sprintf (buffer, "yes");
                 else
                     len= sprintf (buffer, "no");
-				fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-				write(fd1,buffer,len);
-				close(fd1);
+				fd2 = open(myfifo_out,O_WRONLY);
+				write(fd2,buffer,len);
+				close(fd2);
 				break;
 
 			case set_pos_: // motor channel option
@@ -678,15 +700,15 @@ static void *parser_function(void *arg){
 					position.update_theta(theta_arg);
 					printf("update theta %f \n",theta_arg);			
 				}
-                fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-                write(fd1, "ok", strlen("ok")+1);
-                close(fd1);
+                fd2 = open(myfifo_out,O_WRONLY);
+                write(fd2, "ok", strlen("ok")+1);
+                close(fd2);
 				break;			
 			case get_speed_: // motor channel option
 				len= sprintf (buffer, "%f %f", position.speed(left_t),position.speed(right_t));
-				fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-				write(fd1,buffer,len);
-				close(fd1);
+				fd2 = open(myfifo_out,O_WRONLY);
+				write(fd2,buffer,len);
+				close(fd2);
 				break;
 
 			case motor_pwm_: // motor channel option
@@ -695,9 +717,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00001000))!=0)
 				{
 					printf("manque argument\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 
 					break;
 				}
@@ -726,9 +748,9 @@ static void *parser_function(void *arg){
 					default:
 						break;
 					}
-                    fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-                    write(fd1, "ok", strlen("ok")+1);
-                    close(fd1);
+                    fd2 = open(myfifo_out,O_WRONLY);
+                    write(fd2, "ok", strlen("ok")+1);
+                    close(fd2);
 
 				}
 				break;			
@@ -738,9 +760,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00001000))!=0)
 				{
 					printf("manque argument\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 
 					break;
 				}
@@ -753,13 +775,22 @@ static void *parser_function(void *arg){
 						break;
 					case 1:
 						asserv.set_STOP(true);
+                        if(((~var_init)&(0b00001001))!=0)
+                            asserv.set_v(x_arg,left_t);
+                        if(((~var_init)&(0b00000010))!=0)
+                            asserv.set_v(y_arg,right_t);
+                        if(((~var_init)&(0b00000011))==0)
+                        {
+                            asserv.set_v(x_arg,left_t);
+                            asserv.set_v(y_arg,right_t);
+                        }
 						break;
 					default:
 						break;
 					}
-                    fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-                    write(fd1, "ok", strlen("ok")+1);
-                    close(fd1);
+                    fd2 = open(myfifo_out,O_WRONLY);
+                    write(fd2, "ok", strlen("ok")+1);
+                    close(fd2);
 
 				}
 				break;			
@@ -768,9 +799,9 @@ static void *parser_function(void *arg){
 				if(((~var_init)&(0b00001000))!=0)
 				{
 					printf("manque argument\n");
-					fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-					write(fd1, "ko", strlen("ko")+1);
-					close(fd1);
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
 					break;
 				}
 				else
@@ -781,39 +812,39 @@ static void *parser_function(void *arg){
                         theta_gyro = theta_arg;
 					case 1:
                         len= sprintf (buffer, "%f", theta_gyro);
-                        fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-                        write(fd1,buffer,len);
-                        close(fd1);
+                        fd2 = open(myfifo_out,O_WRONLY);
+                        write(fd2,buffer,len);
+                        close(fd2);
 						break;
 					default:
 						break;
 					}
-                    fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-                    write(fd1, "ok", strlen("ok")+1);
-                    close(fd1);
+                    fd2 = open(myfifo_out,O_WRONLY);
+                    write(fd2, "ok", strlen("ok")+1);
+                    close(fd2);
 
 				}
 				break;			
 			default:
-				fd1 = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-				write(fd1, "ko nothing to do", strlen("ko nothing to do")+1);
-				close(fd1);
+				fd2 = open(myfifo_out,O_WRONLY);
+				write(fd2, "ko nothing to do", strlen("ko nothing to do")+1);
+				close(fd2);
 				break;
 			}
-			printf("parsing finished");
+			printf("parsing finished\r\n");
 		 //answer
 			// if(strcmp(str1,"ok")<2)
 			// {
-				// fd1 = open(myfifo,O_WRONLY|O_NONBLOCK);
-				// write(fd1, "ok", strlen("ok")+1);
-				// close(fd1);
+				// fd2 = open(myfifo,O_WRONLY);
+				// write(fd2, "ok", strlen("ok")+1);
+				// close(fd2);
 
 				// rc_usleep(100000);
 			// }
 		}
 
 	}
-
+	close(fd1);
 	pthread_exit(NULL);
 		
 }

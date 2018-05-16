@@ -68,10 +68,10 @@ static void *control_wheels(void *arg){
                 asserv.get_asserv_mode()                         \
                 );
         fclose(f);
-        int fd;
-        fd = open(myfifo_out,O_WRONLY|O_NONBLOCK);
-        write(fd, " bla ", 4);
-        close(fd);
+        // int fd;
+        // fd = open(myfifo_out,O_WRONLY|O_NONBLOCK);
+        // write(fd, " bla ", 4);
+        // close(fd);
 
         if (asserv.get_STOP()==false)
         {
@@ -158,8 +158,8 @@ static void *control_wheels(void *arg){
         }
         else
         {
-                    control.set_speed(left_t, 0);
-                    control.set_speed(right_t, 0);
+                    control.set_speed(left_t,  asserv.get_v(left_t));
+                    control.set_speed(right_t, asserv.get_v(right_t));
         }
         rc_usleep(robot_parameter.period()*10);
     }
@@ -275,12 +275,27 @@ Asserv::Asserv(){
     asserv_mode = asserv_no;
     direction=asserv_any_dir;
     STOP=false;
+	wheel_speed_left_v=0;
+	wheel_speed_right_v=0;
 }
 void Asserv::set_STOP(bool value){
     STOP=value;
 }
 bool Asserv::get_STOP(){
     return STOP;
+}
+void Asserv::set_v(float arg, int motor){
+    if(motor==left_t)
+        wheel_speed_left_v=arg;
+    if(motor==right_t)
+        wheel_speed_right_v=arg;
+}
+float Asserv::get_v(int motor){
+    if(motor==left_t)
+        return wheel_speed_left_v;
+    if(motor==right_t)
+        return wheel_speed_right_v;
+    return 0;
 }
 
 void Asserv::asserv_init(){

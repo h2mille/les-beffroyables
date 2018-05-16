@@ -11,6 +11,7 @@ using namespace std;
 
 
 static void *parser_function(void *arg);
+static void *parser_listener(void *arg);
 
 
 class Parser{

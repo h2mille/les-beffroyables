@@ -25,18 +25,13 @@ GPIO.setup(robot.but1_button,GPIO.IN)
 GPIO.setup(robot.but2_button,GPIO.IN)
 
 robot.my_lcd.write("let's begin")
-robot.init_pipe()
 boot.fast_conf()
 
-robot.robot_com("-Z -x-400 -m1",1)
+robot.robot_com("-Z -x-400 -y300 -m1",1)
 time.sleep(0.3)
-robot.robot_com("-Z -x400 -m1",1)
+robot.robot_com("-Z -x400 -y-300 -m1",1)
 time.sleep(0.3)
-robot.robot_com("-Z -x00 -m1",1)
-robot.robot_com("-B -m0",1)
-robot.robot_com("-B -x-0 -m1",1)
-time.sleep(1)
-robot.robot_com("-B -m-1",1)
+robot.robot_com("-Z -x0 -y0 -m1",1)
 print("move done")
 
 robot.my_lcd.write("init timer")
@@ -73,6 +68,7 @@ robot.robot_com("-S -t-1.2 -m2",1)
 while GPIO.input(robot.trig_button)==0:
     time.sleep(0.1)
 robot_timer=timer.timer()
+print("begin.....")
 #while (time_start-time.time()<20) and (opponent.check_danger()==False):
 if robot.color=="orange":
 	robot.robot_com("-S -t1.2 -m2",1)
@@ -87,9 +83,9 @@ time.sleep(1)
 #on avance doucement 120 cm
 robot.robot_com("-Y -x0 -y0 -t0")
 if(robot.color=="green"):
-    robot.robot_com("-Z -x400 -m1",1)
+    robot.robot_com("-Z -x400 -y300 -m1",1)
 else:
-    robot.robot_com("-Z -x-400 -m1",1)
+    robot.robot_com("-Z -x-400 -y-300 -m1",1)
 time_start=time.time()
 while (time.time()-time_start<1):
     pos=shlex.split(robot.robot_com("-P",3))
@@ -100,7 +96,7 @@ while (time.time()-time_start<1):
         break    
     time.sleep(0.01)
 
-robot.robot_com("-Z -x0 -m1",1)
+robot.robot_com("-Z -x0 -y0 -m1",1)
 if(robot.color=="orange" ):
     robot.robot_com("-S -t0.9 -m3",1)
 else:
@@ -108,9 +104,9 @@ else:
 
 time.sleep(2)
 if(robot.color=="green"):
-    robot.robot_com("-Z -x400 -m1",1)
+    robot.robot_com("-Z -x400 -y300 -m1",1)
 else:
-    robot.robot_com("-Z -x-400 -m1",1)
+    robot.robot_com("-Z -x-400 -y-300 -m1",1)
 time_start=time.time()
 while (time.time()-time_start<3):
     pos=shlex.split(robot.robot_com("-P",3))
@@ -121,7 +117,7 @@ while (time.time()-time_start<3):
         break    
     time.sleep(0.01)
 
-robot.robot_com("-Z -x0 -m1",1)
+robot.robot_com("-Z -x0 -y0 -m1",1)
 
 if(robot.color=="orange" ):
     robot.robot_com("-S -t0.9 -m3",1)
@@ -167,9 +163,9 @@ else:
 #on recule de 40 cm
 robot.robot_com("-Y -x0 -y0 -t0")
 if(robot.color=="green"):
-    robot.robot_com("-Z -x-400 -m1",1)
+    robot.robot_com("-Z -x-400 -y-300 -m1",1)
 else:
-    robot.robot_com("-Z -x400 -m1",1)
+    robot.robot_com("-Z -x400 -y300 -m1",1)
 time_start=time.time()
 while (time.time()-time_start<3.0):
     pos=shlex.split(robot.robot_com("-P",2))
@@ -180,18 +176,17 @@ while (time.time()-time_start<3.0):
         break    
     time.sleep(0.01)
 
-robot.robot_com("-Z -x0 -m1",1)
+robot.robot_com("-Z -x0 -y0 -m1",1)
 if(robot.color=="orange" ):
     robot.robot_com("-S -t-0.6 -m3",1)
 time.sleep(5)
 
 #on avance jusqu'au bout
-robot.robot_com("-Z -x-400 -m1",1)
 robot.robot_com("-Y -x0 -y0 -t0")
 if(robot.color=="green"):
-    robot.robot_com("-Z -x400 -m1",1)
+    robot.robot_com("-Z -x400 -y300 -m1",1)
 else:
-    robot.robot_com("-Z -x-400 -m1",1)
+    robot.robot_com("-Z -x-400 -y-300 -m1",1)
 time_start=time.time()
 while (time.time()-time_start<5):
     pos=shlex.split(robot.robot_com("-P",3))
@@ -202,7 +197,7 @@ while (time.time()-time_start<5):
         break    
     time.sleep(0.01)
     robot.robot_com("-Z -x0 -m1",1)
-robot.robot_com("-B -x0 -m1",1)
+robot.robot_com("-B -x0 -y0 -m1",1)
 
 if(robot.color=="orange" ):
     robot.robot_com("-S -t0.9 -m3",1)
@@ -216,9 +211,9 @@ time.sleep(5)
 #on recule de 120 cm
 robot.robot_com("-Y -x0 -y0 -t0")
 if(robot.color=="green"):
-    robot.robot_com("-Z -x-400 -m1",1)
+    robot.robot_com("-Z -x-400 -y-300 -m1",1)
 else:
-    robot.robot_com("-Z -x400 -m1",1)
+    robot.robot_com("-Z -x400 -y300 -m1",1)
 time_start=time.time()
 while (time.time()-time_start<4):
     pos=shlex.split(robot.robot_com("-P",2))
@@ -231,9 +226,9 @@ while (time.time()-time_start<4):
 robot.robot_com("-Y -x0 -y0 -t0")
 #on reavance pour relacher les balles
 if(robot.color=="green"):
-    robot.robot_com("-Z -x-400 -m1",1)
+    robot.robot_com("-Z -x-400 -y-300 -m1",1)
 else:
-    robot.robot_com("-Z -x400 -m1",1)
+    robot.robot_com("-Z -x400 -y300 -m1",1)
 time_start=time.time()
 while (time.time()-time_start<2):
     pos=shlex.split(robot.robot_com("-P",2))
@@ -243,12 +238,12 @@ while (time.time()-time_start<2):
     if robot.color=="orange" and float(pos[0])<-1200 :
         break    
     time.sleep(0.01)    
-robot.robot_com("-Z -x0 -m1",1)
+robot.robot_com("-Z -x0 -y0 -m1",1)
 time.sleep(1)
 if(robot.color=="green"):
-    robot.robot_com("-Z -x400 -m1",1)
+    robot.robot_com("-Z -x400 -y300 -m1",1)
 else:
-    robot.robot_com("-Z -x-400 -m1",1)
+    robot.robot_com("-Z -x-400 -y-300 -m1",1)
 time_start=time.time()
 while (time.time()-time_start<2):
     pos=shlex.split(robot.robot_com("-P",2))
@@ -258,7 +253,7 @@ while (time.time()-time_start<2):
     if robot.color=="orange" and float(pos[0])<-1200 :
         break    
     time.sleep(0.01)    
-robot.robot_com("-Z -x0 -m1",1)
+robot.robot_com("-Z -x0 -y0 -m1",1)
     
 
 print("fin du match")

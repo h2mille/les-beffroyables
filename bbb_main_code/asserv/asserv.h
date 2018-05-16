@@ -50,6 +50,8 @@ class Asserv{
 	bool motor_get_lock();
     void set_STOP(bool value);
     bool get_STOP();
+	void set_v(float arg,int motor);
+	float get_v(int motor);
 
 
 	void force_direction(asserv_direction_t direction_value);
@@ -74,7 +76,9 @@ class Asserv{
 	pthread_t control_thread;
 	pthread_t wheels_thread;
     bool STOP;
-	
+	float wheel_speed_left_v;
+	float wheel_speed_right_v;
+
 
 };
 

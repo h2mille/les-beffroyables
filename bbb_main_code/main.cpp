@@ -129,7 +129,7 @@ int main(){
 	// asserv.add_move(0,0,0);
 	// asserv.go_destination();
 	while(rc_get_state() != EXITING )
-		rc_usleep(1000000);
+		rc_usleep(100000);
 
 		
 	
@@ -143,6 +143,12 @@ int main(){
 //#ifdef USE_GYRO
 	rc_power_off_imu();
 //#endif
+    int fd;
+    fd = open(myfifo_in,O_WRONLY);
+    write(fd, "ko", strlen("ko")+1);
+    close(fd);
+    fd = open(myfifo_out,O_RDONLY);
+    close(fd);
 	rc_cleanup();
 
 }

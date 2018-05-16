@@ -8,9 +8,12 @@ import os
 import time
 import shlex
 from lcddriver import lcd
-from threading import Thread, RLock
+from threading import Thread, Lock
 from math import *
 import opponent
+import select
+import fcntl
+
 
 from os.path import exists
 
@@ -24,7 +27,10 @@ color = "none"
 angle_base=0.001
 robot_base=50
 
-read = False
+read = Lock()
+write = Lock()
+new_write = Lock()
+
 #inverse car RX/TX blablabla
 asserv_in_file = "/tmp/robot_com_out"
 asserv_out_file = "/tmp/robot_com_in"
@@ -39,41 +45,55 @@ in_file.close()
 
 response=""
 
+class FileLock:
+    """Implements a file-based lock using flock(2).
+    The lock file is saved in directory dir with name lock_name.
+    dir is the current directory by default.
+    """
 
-def init_pipe():
-    fifo_tread=FIFO_OUT()
-    fifo_tread.start()
-    
+    def __init__(self, lock_name, dir="."):
+        self.lock_file = open(os.path.join(dir, lock_name), "w")
 
+    def acquire(self, blocking=True):
+        """Acquire the lock.
+        If the lock is not already acquired, return None.  If the lock is
+        acquired and blocking is True, block until the lock is released.  If
+        the lock is acquired and blocking is False, raise an IOError.
+        """
+        ops = fcntl.LOCK_EX
+        if not blocking:
+            ops |= fcntl.LOCK_NB
+        fcntl.flock(self.lock_file, ops)
+
+    def release(self):
+        """Release the lock. Return None even if lock not currently acquired"""
+        fcntl.flock(self.lock_file, fcntl.LOCK_UN)
+
+com_lock = FileLock("com_lock", dir="/var/lock")    
 def robot_com(arg, number=1):
     global out_file
     global in_file
     global read
-    success = True
-    buff=""
-    global response
-    # while(len(response.split())<=number):
-    success = True
-    buff=""
-    try:
-        out_file= open(asserv_out_file, "w")
-    except:
-        success = False
-        print("broken pipe ^^")
-        return False
+    global write
+    global com_lock
 
+    com_lock.acquire(True)
+    poller = select.epoll()
+    in_file=os.open(asserv_in_file,os.O_RDONLY | os.O_NONBLOCK)
+    poller.register(in_file, select.EPOLLET)
+
+    buff=""
+
+    out_file= open(asserv_out_file, "w")
     out_file.write("a "+arg+"\n")
-    print ("sent : ","a "+arg+"\n")
-    out_file.close()
-    while(response==''):
-        print("response from thread ",response)
-        time.sleep(0.01)
-    print(response)
+    out_file.close()    
+    print ("sent : "+"a "+arg+"\n")
+    p = poller.poll()
+    response=os.read(in_file,100)
     buff=response
-    read=True
-    print(response)
-
-    time.sleep(0.1)    
+    print("response:"+response)
+    com_lock.release()
+   
     return buff
 
 def turn(angle, ref):
@@ -164,22 +184,4 @@ def get_gyro_angle():
     value = robot_com("-H -m1",1)
     
     
-class FIFO_OUT(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-        
-    def run(self):
-        global out_file
-        global in_file
-        global read
-        global response
-        while(True):
-            in_file=open(asserv_in_file,"r")
-            response=in_file.read()
-            print("response from thread ",response)
-            while(read==False):
-                print("response from thread ",response)
-                time.sleep(0.1)
-            response=''
-            read=False
 

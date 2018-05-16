@@ -99,19 +99,21 @@ void Control::go_angle(){
 	else if(rotation_speed<real_rotation_speed-rot_accel_max*(float)enc_time_diff/1000000000)
 		 rotation_speed=real_rotation_speed-rot_accel_max*(float)enc_time_diff/1000000000;
 
+    //décélération 40% plus lente
+    float rot_accel_max_60=rot_accel_max*0.2;
 	if(delta_angle>0)
 	{
-		if(rotation_speed>sqrt(2* delta_angle/rot_accel_max) *rot_accel_max)
-			rotation_speed=sqrt(2* delta_angle/rot_accel_max) *rot_accel_max;
-		else if(rotation_speed<-sqrt(2* delta_angle/rot_accel_max) *rot_accel_max)
-			rotation_speed=-sqrt(2* delta_angle/rot_accel_max) *rot_accel_max;
+		if(rotation_speed>sqrt(2* delta_angle/rot_accel_max_60) *rot_accel_max_60)
+			rotation_speed=sqrt(2* delta_angle/rot_accel_max_60) *rot_accel_max_60;
+		else if(rotation_speed<-sqrt(2* delta_angle/rot_accel_max_60) *rot_accel_max_60)
+			rotation_speed=-sqrt(2* delta_angle/rot_accel_max_60) *rot_accel_max_60;
 	}
 	else
 	{
-		if(rotation_speed>sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max)
-			rotation_speed=sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max;
-		else if(rotation_speed<-sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max)
-			rotation_speed=-sqrt(2* -delta_angle/rot_accel_max) *rot_accel_max;
+		if(rotation_speed>sqrt(2* -delta_angle/rot_accel_max_60) *rot_accel_max_60)
+			rotation_speed=sqrt(2* -delta_angle/rot_accel_max_60) *rot_accel_max_60;
+		else if(rotation_speed<-sqrt(2* -delta_angle/rot_accel_max_60) *rot_accel_max_60)
+			rotation_speed=-sqrt(2* -delta_angle/rot_accel_max_60) *rot_accel_max_60;
 	}
 	
 	float wheel_speed= rotation_speed*robot_parameter.wheel_distance()/2;
@@ -181,26 +183,30 @@ void Control::robot_go_distance(float distance, float ratio){
 	}
 	//for deceleration
 	// if(rotation_speed>delta_distance*accel_max)
+
+    //décélération 40% plus lente
+    int accel_max_60=accel_max*0.2;
+
 	if(delta_distance>0)
 	{
-		if(rotation_speed>sqrt(2* delta_distance/accel_max) *accel_max)
+		if(rotation_speed>sqrt(2* delta_distance/accel_max_60) *accel_max_60)
 		{
-			rotation_speed=sqrt(2* delta_distance/accel_max)*accel_max;
+			rotation_speed=sqrt(2* delta_distance/accel_max_60)*accel_max_60;
 		}
-		if(-rotation_speed>sqrt(2* delta_distance/accel_max) *accel_max)
+		if(-rotation_speed>sqrt(2* delta_distance/accel_max_60) *accel_max_60)
 		{
-			rotation_speed=-sqrt(2* delta_distance/accel_max)*accel_max;
+			rotation_speed=-sqrt(2* delta_distance/accel_max_60)*accel_max_60;
 		}
 	}
 	else
 	{
-		if(rotation_speed>sqrt(2* -delta_distance/accel_max) *accel_max)
+		if(rotation_speed>sqrt(2* -delta_distance/accel_max_60) *accel_max_60)
 		{
-			rotation_speed=sqrt(2* -delta_distance/accel_max)*accel_max;
+			rotation_speed=sqrt(2* -delta_distance/accel_max_60)*accel_max_60;
 		}
-		if(-rotation_speed>sqrt(2* -delta_distance/accel_max) *accel_max)
+		if(-rotation_speed>sqrt(2* -delta_distance/accel_max_60) *accel_max_60)
 		{
-			rotation_speed=-sqrt(2* -delta_distance/accel_max)*accel_max;
+			rotation_speed=-sqrt(2* -delta_distance/accel_max_60)*accel_max_60;
 		}
 	} 
 	printf("go_dist %f %f %f\r\n",delta_distance,rotation_speed, ratio);
