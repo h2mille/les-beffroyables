@@ -128,16 +128,16 @@ int main(){
 	// asserv.add_move(0,250,PI);
 	// asserv.add_move(0,0,0);
 	// asserv.go_destination();
-	while(rc_get_state() != EXITING )
-		rc_usleep(100000);
+
 
 		
 	
 	int i=0;
 	while(rc_get_state() != EXITING )
 	{
-		printf("\r\nnext %d  %f %f %f\r\n",i++,destination.x, destination.y,destination.theta);
-		asserv.go_destination();
+//		printf("\r\nnext %d  %f %f %f\r\n",i++,destination.x, destination.y,destination.theta);
+//		asserv.go_destination();
+		usleep(100000UL);
 		
 	}
 //#ifdef USE_GYRO

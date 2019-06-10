@@ -12,9 +12,9 @@ Position position;
 
 Position::Position()
 {
-    coordinates.x=0;
-    coordinates.y=0;
-    coordinates.theta=PI/2;
+    coordinates.x=1000;
+    coordinates.y=2000;
+    coordinates.theta=PI/4;
     speed_coordinates_v.x=0;
     speed_coordinates_v.y=0;
     speed_coordinates_v.theta=0;

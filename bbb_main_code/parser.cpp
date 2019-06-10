@@ -96,6 +96,7 @@ enum action_t
 	motor_pwm_,
 	stop_,
 	gyro_,
+	lidar_,
 	none_
 };
 
@@ -131,24 +132,24 @@ static void *parser_function(void *arg){
 	
 	argv_[0]=&str1[0];
 	argc_++;
-    printf("ready to read\r\n");
+//    printf("ready to read\r\n");
 
     fd_set set;
     fd1 = open(myfifo_in,O_RDWR | O_NONBLOCK);
     FD_ZERO(&set);
     FD_SET(fd1, &set);
 	while(rc_get_state() != EXITING){
-        printf("ready to read again\r\n");
+//        printf("ready to read again\r\n");
         select(fd1+1, &set, NULL, NULL, NULL);
 		size = read(fd1, str1, 80);
-        printf("read: %s",str1);
+//        printf("read: %s",str1);
         // while((fd1==prev_file_descriptor))
             // rc_usleep(1000);
         // prev_file_descriptor=fd1;
 		if(size>0)
 		{
 //on nettoie la chaine
-			printf("\n\nreceive : %s\r\n",str1);
+//			printf("\n\nreceive : %s\r\n",str1);
             
 
 			argc_=0;
@@ -161,7 +162,7 @@ static void *parser_function(void *arg){
 				}
                 else if((str1[i-1]==' ')&&(str1[i]=='-'))
 				{
-                    printf("nouvel arg: %s",&str1[i]);
+//                   printf("nouvel arg: %s",&str1[i]);
 					argv_[argc_]=&str1[i];
 					argc_++;
 				}
@@ -170,7 +171,7 @@ static void *parser_function(void *arg){
 					str1[i]='\0';
 			}
 
-            printf("\r\n", str1[i]);
+/*            printf("\r\n", str1[i]);
             for (i = 0; i < size; i ++) {
                 printf(" %2x", str1[i]);
             }
@@ -179,7 +180,7 @@ static void *parser_function(void *arg){
                 printf("  %c", str1[i]);
             }
             printf("\r\n");
-
+*/
                 //on parse la chaine
 			int c, in;
 			float in_f;
@@ -195,11 +196,11 @@ static void *parser_function(void *arg){
             
 			optind=1;
             
-            printf("on a %d arguments", argc_);
+//            printf("on a %d arguments", argc_);
 
-		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVBHZ")) != -1);
+		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGlTDSPEALEXYVBHZ")) != -1);
             optind=1;
-		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGTDSPEALEXYVBHZ")) != -1){
+		 	while ((c = getopt(argc_, argv_, "x:y:t:m:rGlTDSPEALEXYVBHZ")) != -1){
 				switch (c){
 				case 'x': // motor channel option
 					x_arg = atof(optarg);
@@ -232,6 +233,19 @@ static void *parser_function(void *arg){
 						action=go_;
 						action_done=true;
 						printf("go_\n");
+					}
+					else
+					{
+						action=none_;
+						printf("trop d'actions demandées\n");
+					}
+					break;
+				case 'l': // lidar on(1)/off(0)
+					if(action_done==false)
+					{
+						action=lidar_;
+						action_done=true;
+						printf("lidar_\n");
 					}
 					else
 					{
@@ -283,7 +297,7 @@ static void *parser_function(void *arg){
 					{
 						action=state_;
 						action_done=true;
-						printf("state_\n");
+//						printf("state_\n");
 					}
 					else
 					{
@@ -825,13 +839,43 @@ static void *parser_function(void *arg){
 
 				}
 				break;			
+			case lidar_: // motor channel option
+			
+				if(((~var_init)&(0b00001000))!=0)
+				{
+					printf("manque argument\n");
+					fd2 = open(myfifo_out,O_WRONLY);
+					write(fd2, "ko", strlen("ko")+1);
+					close(fd2);
+					break;
+				}
+				else
+				{
+					switch (mode_arg)
+					{
+					case 0:
+                        asserv.unset_lidar();
+						break;
+					case 1:
+                        asserv.set_lidar();
+						break;
+					default:
+                        printf("lidar mauvaise valeur\n");
+						break;
+					}
+                    fd2 = open(myfifo_out,O_WRONLY);
+                    write(fd2, "ok", strlen("ok")+1);
+                    close(fd2);
+
+				}
+				break;			
 			default:
 				fd2 = open(myfifo_out,O_WRONLY);
-				write(fd2, "ko nothing to do", strlen("ko nothing to do")+1);
+				write(fd2, "ko nothing to do", strlen("lidar ko nothing to do")+1);
 				close(fd2);
 				break;
 			}
-			printf("parsing finished\r\n");
+//			printf("parsing finished\r\n");
 		 //answer
 			// if(strcmp(str1,"ok")<2)
 			// {

@@ -75,10 +75,11 @@ def check_danger2():
     return False
 
 def check_danger():
-    with serial.Serial('/dev/ttyS2', 115200 , timeout=0.1) as ser:
-        line = ser.readline()
+    ser=serial.Serial('/dev/ttyS2', 115200 , timeout=0.1)
+    line = ser.readline()
+    ser.close()
     print("line:",line)
-    if(line =="1\r\n"):
+    if(line =="1 \r\n"):
         return True;
     else:
         return False

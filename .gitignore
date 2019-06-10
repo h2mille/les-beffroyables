@@ -30,3 +30,4 @@ asserv_shield/shield/motor_shield_08.job
 *.b#9
 asserv_shield/shield/motor_shield.b#9
 asserv_shield/shield/eagle.epf
+*.gcode

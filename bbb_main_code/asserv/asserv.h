@@ -27,6 +27,8 @@ typedef enum{
 static void *position_computation(void *arg);
 static void *control_wheels(void *arg);
 static void *run_wheels(void *arg);
+
+
 class Asserv{
     
     public:
@@ -52,14 +54,20 @@ class Asserv{
     bool get_STOP();
 	void set_v(float arg,int motor);
 	float get_v(int motor);
-
+    void set_lidar();
+    void unset_lidar();
+    bool is_lidar();
+    void set_large();
+    void set_thin();
+    bool is_large();
 
 	void force_direction(asserv_direction_t direction_value);
 	asserv_direction_t get_direction();
 	
 
 	asserv_type_t get_asserv_mode();
-    
+    pthread_t lidar_thread;
+
     private:
 	float left_distance;
 
@@ -75,10 +83,13 @@ class Asserv{
 	pthread_t position_thread;
 	pthread_t control_thread;
 	pthread_t wheels_thread;
+	pthread_t lidar_watchdog_thread;
     bool STOP;
 	float wheel_speed_left_v;
 	float wheel_speed_right_v;
-
+    
+    bool activate_detection;
+    bool large;
 
 };
 

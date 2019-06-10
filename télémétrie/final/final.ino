@@ -63,7 +63,7 @@ void setup() {
 
 
   delay(100);
-  pinMode(8,INPUT);
+  pinMode(5,INPUT);
   delay(100);
   sensor[0].init();
   sensor[0].setAddress(12);
@@ -165,7 +165,7 @@ void add_fifo(){
   }
   for(i=0;i<SENSOR_NUMBER;i++)
   {
-    Serial.print("I got something");
+//    Serial.print("I got something");
     if(temp[i]>2500)
     {
       if(no_detect[i]<NO_DETECT_THRETHOLD)

@@ -1,0 +1,30 @@
+Parts;Device;Qty;link;Value;Package;;Description;MF;MPN;OC_FARNELL;OC_NEWARK;PROD_ID;SF_ID;SPICEPREFIX
+J12, J14;CONN_02POLAR_LOCK;2;;;MOLEX-1X2_LOCK;;Multi connection point. Often used as Generic Header-pin footprint for 0.1 inch spaced/style header connections;;;;;;PRT-09918;
+J15, J16;CONN_04;2;;;1X04;;Multi connection point. Often used as Generic Header-pin footprint for 0.1 inch spaced/style header connections;;;;;CONN-09696;;
+J2, J6, J7, J8, J9;CONN_04POLAR;5;;;MOLEX-1X4;;Multi connection point. Often used as Generic Header-pin footprint for 0.1 inch spaced/style header connections;;;;;CONN-08186;PRT-08231;
+J1, J3, J4, J5;CONN_04X2;4;;;2X4;;Multi connection point. Often used as Generic Header-pin footprint for 0.1 inch spaced/style header connections;;;;;;;
+C2, C3, C4, C5, C6;CPOL-US140CLH-1010;5;;;ADAFRUIT_140CLH-1010;;POLARIZED CAPACITOR, American symbol;;;;;;;
+J11;JACK-PLUG1;1;;;SPC4078;;DC POWER JACK;;;unknown;unknown;;;
+JP1;JP1E;1;;;JP1;;JUMPER;;;;;;;
+X1, X2, X3, X5, X6;MSTBV2;5;;;MSTBV2;;PHOENIX;;;unknown;unknown;;;
+R15, R16, R17;R-EU_R0402;3;;;R0402;;RESISTOR, European symbol;;;;;;;
+RN7;RN04;1;;;RN-5;;RESISTOR NETWORK;;;unknown;unknown;;;
+C1;SPARKFUN-CAPACITORS_CAP0805;1;;;SPARKFUN-CAPACITORS_0805;;Capacitor;;;;;;;
+R1, R2;R-EU_M0805;2;;0.5;M0805;;RESISTOR, European symbol;;;;;;;R
+R3, R5, R7, R9, R19, R21, R23, R25, R27, R29, R31, R33, R35, R37, R39, R41, R51, R53, R55, R57;R-EU_M0805;20;;220;M0805;;RESISTOR, European symbol;;;;;;;R
+R12;R-EU_M0805;1;;3k;M0805;;RESISTOR, European symbol;;;;;;;R
+IC3;4030D;1;;4030D;SO14;;Quad XOR;;;;;;;
+RN2, RN3, RN4, RN5, RN6;RN04;5;;680;RN-5;;RESISTOR NETWORK;;;unknown;unknown;;;
+R4, R11;R-EU_M0805;2;;6k;M0805;;RESISTOR, European symbol;;;;;;;R
+IC4;7805DT;1;;7805DT;TO252;;Positive VOLTAGE REGULATOR;;;;;;;
+PCB1;BEAGLEBONE_BLACK_CAPE;1;;BEAGLEBONE_BLACK_CAPE;BEAGLEBONE_BLACK_CAPE;;;;;;;;;
+IC1, IC2;L298;2;;L298;MULTIWATT-15;;DUAL FULL-BRIDGE DRIVER;;L298N;1589425;32M1527;;;
+IC6;LM358D;1;;LM358D;SO08;;"OP AMP also LM158; LM258; LM2904";;;;;;;
+IC5;MAX6520;1;;MAX6520;SOT23;;1.2V Voltage Reference 50ppm/°C, SOT23, 3-Terminal;MAXIM;MAX6520EUR-T;unknown;02J4586;;;
+U$2;MPU9220;1;;MPU9220;MPU9250;;;;;;;;;
+K1;RT33K012;1;;RT33K012;RT-N/O16A5;;Power PCB Relay Inrush  SCHRACK;;RT33K012;unknown;48M7964;;;
+Q5, Q6;STRAWSON_EAGLE_LIB_MOSFET-NCHANNEL;2;;STRAWSON_EAGLE_LIB_MOSFET-NCHANNEL;STRAWSON_EAGLE_LIB_SO08-TIGHT;;Common NMOSFET Parts;;;;;;;
+U$4;STRAWSON_EAGLE_LIB_SERVO_HEADERS_8X;1;;STRAWSON_EAGLE_LIB_SERVO_HEADERS_8X;"STRAWSON_EAGLE_LIB_3X8_0.1_HEADER""";;;;;;;;;
+OPT_MISC, OPT_MOT1, OPT_MOT2, OPT_SERVO1, OPT_SERVO2;TLP283-4;5;;TLP283-4;MINI-FLAT-16;;TOSHIBA PHOTOCOUPLER GaAs IRED & PHOTO-TRANSISTOR;;;unknown;unknown;;;
+U$1;WRA-YMD;1;;WRA-YMD;WRA-YMD;;;;;;;;;
+U$5;XL6009;1;;XL6009;XL6009;;;;;;;;;

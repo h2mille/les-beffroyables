@@ -1,0 +1,89 @@
+Partlist
+
+Exported from motor_shield.brd at 02/05/2019 11:10
+
+EAGLE Version 9.2.1 Copyright (c) 1988-2018 Autodesk, Inc.
+
+Assembly variant: 
+
+Part       Value                               Package                            Library                  Position (mm)         Orientation
+
+C1                                             SPARKFUN-CAPACITORS_0805           BeagleBone_Blue          (51.760490625 78.5334375) R180
+C2                                             ADAFRUIT_140CLH-1010               BeagleBone_Blue          (5.08 92.71)          R90
+C3                                             ADAFRUIT_140CLH-1010               BeagleBone_Blue          (15.24 92.71)         R90
+C4                                             ADAFRUIT_140CLH-1010               BeagleBone_Blue          (25.4 92.71)          R90
+C5                                             ADAFRUIT_140CLH-1010               BeagleBone_Blue          (21.59 68.58)         MR0
+C6                                             ADAFRUIT_140CLH-1010               BeagleBone_Blue          (7.62 68.58)          MR0
+IC1        L298                                MULTIWATT-15                       st-microelectronics      (77.47 12.7)          R90
+IC2        L298                                MULTIWATT-15                       st-microelectronics      (77.47 34.925)        R90
+IC3        4030D                               SO14                               40xx                     (63.5 39.37)          R0
+IC4        7805DT                              TO252                              linear                   (33.02 78.74)         R90
+IC5        MAX6520                             SOT23                              maxim                    (52.07 82.55)         R0
+IC6        LM358D                              SO08                               linear                   (66.04 81.28)         R0
+J1                                             2X4                                SparkFun-Connectors      (93.98 6.985)         R270
+J2                                             MOLEX-1X4                          SparkFun-Connectors      (25.4 38.1)           R90
+J3                                             2X4                                SparkFun-Connectors      (93.98 17.78)         R270
+J4                                             2X4                                SparkFun-Connectors      (93.98 30.48)         R270
+J5                                             2X4                                SparkFun-Connectors      (93.98 41.91)         R270
+J6                                             MOLEX-1X4                          SparkFun-Connectors      (33.02 38.1)          R90
+J7                                             MOLEX-1X4                          SparkFun-Connectors      (87.56104375 80.207121875) R180
+J8                                             MOLEX-1X4                          SparkFun-Connectors      (10.16 38.1)          R90
+J9                                             MOLEX-1X4                          SparkFun-Connectors      (17.78 38.1)          R90
+J11                                            SPC4078                            con-jack                 (95.384165625 58.822428125) R180
+J12                                            MOLEX-1X2_LOCK                     SparkFun-Connectors      (75.6353 76.529309375) R90
+J14                                            MOLEX-1X2_LOCK                     SparkFun-Connectors      (44.45 82.55)         R180
+J15                                            1X04                               SparkFun-Connectors      (44.45 44.45)         R270
+J16                                            1X04                               SparkFun-Connectors      (41.91 36.83)         R90
+JP1                                            JP1                                jumper                   (6.35 58.42)          R270
+K1         RT33K012                            RT-N/O16A5                         relay                    (72.39 91.44)         R0
+OPT_MISC   TLP283-4                            MINI-FLAT-16                       optocoupler              (83.503378125 67.868759375) R90
+OPT_MOT1   TLP283-4                            MINI-FLAT-16                       optocoupler              (66.04 22.86)         R90
+OPT_MOT2   TLP283-4                            MINI-FLAT-16                       optocoupler              (85.096290625 54.0903375) R90
+OPT_SERVO1 TLP283-4                            MINI-FLAT-16                       optocoupler              (34.402390625 67.0851125) R90
+OPT_SERVO2 TLP283-4                            MINI-FLAT-16                       optocoupler              (49.959890625 67.0851125) R90
+PCB1       BEAGLEBONE_BLACK_CAPE               BEAGLEBONE_BLACK_CAPE              e14_BeagleBoneBlack_RevB (-11.43 1.27)         R0
+Q5         STRAWSON_EAGLE_LIB_MOSFET-NCHANNEL  STRAWSON_EAGLE_LIB_SO08-TIGHT      BeagleBone_Blue          (96.275378125 51.42674375) R270
+Q6         STRAWSON_EAGLE_LIB_MOSFET-NCHANNEL  STRAWSON_EAGLE_LIB_SO08-TIGHT      BeagleBone_Blue          (59.20545 81.312303125) R0
+R1         0.5                                 M0805                              rcl                      (73.66 13.97)         R270
+R2         0.5                                 M0805                              rcl                      (73.66 30.48)         R270
+R3         220                                 M0805                              rcl                      (70.637534375 61.9013875) R0
+R4         6k                                  M0805                              rcl                      (53.499528125 76.867421875) R180
+R5         220                                 M0805                              rcl                      (70.685828125 59.651259375) R0
+R7         220                                 M0805                              rcl                      (70.734121875 57.159575) R0
+R9         220                                 M0805                              rcl                      (70.62504375 54.048325) R0
+R11        6k                                  M0805                              rcl                      (71.1372875 83.1724375) R90
+R12        3k                                  M0805                              rcl                      (71.12 78.74)         R90
+R15                                            R0402                              resistor                 (87.908353125 16.132240625) R270
+R16                                            R0402                              resistor                 (87.63 35.56)         R270
+R17                                            R0402                              resistor                 (12.7 12.7)           R180
+R19        220                                 M0805                              rcl                      (61.595 15.5575)      R90
+R21        220                                 M0805                              rcl                      (64.135 15.5575)      R90
+R23        220                                 M0805                              rcl                      (66.675 15.5575)      R90
+R25        220                                 M0805                              rcl                      (69.215 15.5575)      R90
+R27        220                                 M0805                              rcl                      (70.485 74.6125)      R0
+R29        220                                 M0805                              rcl                      (70.485 71.4375)      R0
+R31        220                                 M0805                              rcl                      (70.485 67.6275)      R0
+R33        220                                 M0805                              rcl                      (70.485 64.4525)      R0
+R35        220                                 M0805                              rcl                      (29.322390625 60.7351125) R90
+R37        220                                 M0805                              rcl                      (32.497390625 60.7351125) R90
+R39        220                                 M0805                              rcl                      (35.672390625 60.4176125) R90
+R41        220                                 M0805                              rcl                      (38.847390625 60.7351125) R90
+R51        220                                 M0805                              rcl                      (43.927390625 60.7351125) R90
+R53        220                                 M0805                              rcl                      (47.419890625 60.4176125) R90
+R55        220                                 M0805                              rcl                      (50.594890625 60.7351125) R90
+R57        220                                 M0805                              rcl                      (53.769890625 60.7351125) R90
+RN2        680                                 RN-5                               resistor-net             (84.733878125 74.245425) R0
+RN3        680                                 RN-5                               resistor-net             (66.04 11.43)         R0
+RN4        680                                 RN-5                               resistor-net             (83.5883625 61.306753125) R0
+RN5        680                                 RN-5                               resistor-net             (47.824809375 72.7488125) R0
+RN6        680                                 RN-5                               resistor-net             (33.02 72.755396875)  R0
+RN7                                            RN-5                               resistor-net             (38.1 40.64)          R270
+U$1        WRA-YMD                             WRA-YMD                            beffroyables             (26.67 86.36)         R180
+U$2        MPU9220                             MPU9250                            beffroyables             (34.29 15.24)         R90
+U$4        STRAWSON_EAGLE_LIB_SERVO_HEADERS_8X STRAWSON_EAGLE_LIB_3X8_0.1"_HEADER BeagleBone_Blue          (64.5779875 75.58925) R0
+U$5        XL6009                              XL6009                             beffroyables             (4.70326875 98.09396875) MR180
+X1                                             MSTBV2                             con-phoenix-500          (96.52 71.12)         R270
+X2                                             MSTBV2                             con-phoenix-500          (93.98 95.25)         R0
+X3                                             MSTBV2                             con-phoenix-500          (96.52 83.82)         R270
+X5                                             MSTBV2                             con-phoenix-500          (48.26 91.44)         R0
+X6                                             MSTBV2                             con-phoenix-500          (36.83 91.44)         R0

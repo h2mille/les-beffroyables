@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblidar.a  CMakeFiles/lidar.dir/src/src/C3iroboticsLidar.cpp.o CMakeFiles/lidar.dir/src/src/CArcTime.cpp.o CMakeFiles/lidar.dir/src/src/CCountDown.cpp.o CMakeFiles/lidar.dir/src/src/CDeviceConnection.cpp.o CMakeFiles/lidar.dir/src/src/CLidarPacket.cpp.o CMakeFiles/lidar.dir/src/src/CLidarPacketReceiver.cpp.o CMakeFiles/lidar.dir/src/src/CLidarUnpacket.cpp.o CMakeFiles/lidar.dir/src/src/CSerialConnection.cpp.o CMakeFiles/lidar.dir/src/src/CSimulateSerial.cpp.o CMakeFiles/lidar.dir/src/src/CTime.cpp.o
+/usr/bin/ranlib liblidar.a

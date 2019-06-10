@@ -1,0 +1,3 @@
+/home/debian/robot/lidar/CMakeFiles/edit_cache.dir
+/home/debian/robot/lidar/CMakeFiles/rebuild_cache.dir
+/home/debian/robot/lidar/CMakeFiles/lidar.dir

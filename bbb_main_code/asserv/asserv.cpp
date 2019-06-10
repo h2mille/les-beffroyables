@@ -6,6 +6,7 @@
 #include "control.h"
 #include "parameter.h"
 #include "asserv.h"
+#include "lidar.h"
 #include "rc_usefulincludes.h"
 #include <pthread.h>
 
@@ -113,8 +114,12 @@ static void *control_wheels(void *arg){
                     printf("%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
                     printf("from %f %f to %f %f\n", position.get_coordinates().x,position.get_coordinates().y,pos.x,pos.y);
 
+                    float pwm_left,pwm_right;
+                    float speed_left,speed_right;
+                    control.get_pwm(&pwm_left,&pwm_right);
+                    control.get_speed(&speed_left,&speed_right);
                     f=fopen("log.csv", "a");
-                    fprintf(f, "%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio);
+                    fprintf(f, "%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio,pwm_left,pwm_right,position.speed(left_t),position.speed(right_t),speed_left,speed_right);
                     fclose(f);
 
                     printf("\r\nasserv_vector\r\n");
@@ -131,6 +136,11 @@ static void *control_wheels(void *arg){
                         asserv.set_asserv_mode(asserv_theta);
                     }
                     couleur("0");
+                    control.get_pwm(&pwm_left,&pwm_right);
+                    control.get_speed(&speed_left,&speed_right);
+                    f=fopen("log.csv", "a");
+                    fprintf(f, "%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f\n", position.get_coordinates().x,position.get_coordinates().y,position.get_coordinates().theta,(dist+dist_left),dist, ratio,pwm_left,pwm_right,position.speed(left_t),position.speed(right_t),speed_left,speed_right);
+                    fclose(f);
                     control.robot_go_distance(dist,ratio);
                     break;
                 case(asserv_theta):
@@ -277,6 +287,8 @@ Asserv::Asserv(){
     STOP=false;
 	wheel_speed_left_v=0;
 	wheel_speed_right_v=0;
+    activate_detection=false;
+    large=false;
 }
 void Asserv::set_STOP(bool value){
     STOP=value;
@@ -297,6 +309,30 @@ float Asserv::get_v(int motor){
         return wheel_speed_right_v;
     return 0;
 }
+void Asserv::set_lidar()
+{
+    activate_detection=true;
+}
+void Asserv::unset_lidar()
+{
+    activate_detection=false;
+}
+bool Asserv::is_lidar()
+{
+    return activate_detection;
+}
+void Asserv::set_large()
+{
+    large=true;
+}
+void Asserv::set_thin()
+{
+    large=false;
+}
+bool Asserv::is_large()
+{
+    return large;
+}
 
 void Asserv::asserv_init(){
     rc_enable_motors();
@@ -312,6 +348,13 @@ void Asserv::asserv_init(){
     if (pthread_create(&wheels_thread, NULL, run_wheels, NULL)) {
          perror("pthread_create");
      }
+    if (pthread_create(&lidar_thread, NULL, run_lidar, NULL)) {
+         perror("pthread_create");
+     }
+/*    if (pthread_create(&lidar_watchdog_thread, NULL, run_lidar_watchdog, NULL)) {
+         perror("pthread_create");
+     }
+*/
     position.update_x(0);
     position.update_y(0);
     position.update_theta(PI/2);

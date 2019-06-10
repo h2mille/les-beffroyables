@@ -1,0 +1,12 @@
+        # danger=opponent.check_danger()
+        # print("danger:",danger)
+        # if(danger== True):
+            # print("danger")             
+            # danger_happened=True
+            # while(True):
+                # robot_com("-Z -m1",1)
+                # time.sleep(0.1)
+        # else:
+            # if(danger_happened==True):
+                # danger_happened=False
+                # robot_com("-Z -m0",1)

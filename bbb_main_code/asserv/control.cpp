@@ -6,11 +6,28 @@
 #include <stdio.h>
 using namespace std;
 #include <cmath>
+#include "asserv.h"
+#include "lidar.h"
+
 
 extern parameter robot_parameter;
 extern Position position;
+extern Asserv asserv;
 extern uint32_t enc_time_diff;
+
+extern float obstacle[4];
 Control control;
+
+void Control::get_pwm(float* l,float* r)
+{
+  *l=pwm_v[0];
+  *r=pwm_v[1];
+}
+void Control::get_speed(float* l,float* r)
+{
+  *l=left_speed;
+  *r=right_speed;
+}
 
 Control::Control()
 {
@@ -156,16 +173,39 @@ void Control::robot_go_distance(float distance, float ratio){
 	// float pid_p = 30000;
 	// float pid_i = 0.000;
 	// float pid_d = -3000;
+    int signe_distance;
+    if(distance<0)
+        signe_distance=-1;
+    else
+        signe_distance=1;
+    
+    if (asserv.is_lidar()==true)
+    {
+        if ((distance>0)&&(obstacle[0]-300<distance))
+        {
+            obstacle[0]-=(((left_speed+right_speed)/2)*(robot_parameter.period()/100000.0));
+            printf("con:\t %f\t %f   blabla %f %f %d\r\n", distance,(obstacle[0]-300), (((left_speed+right_speed)/2)*(robot_parameter.period()/100000.0)),(left_speed+right_speed)/2,robot_parameter.period());
+            distance=obstacle[0]-400;
+        }else if ((distance<0)&&((obstacle[1]+300)>distance))
+        {
+            obstacle[1]+=((((left_speed+right_speed)/2)*robot_parameter.period())/100000.0);
+            printf("con:\t %f\t %f", distance,(obstacle[1]+300));
+            distance=obstacle[1]+400;
+        }
+        if(signe_distance*distance<0)
+            distance=0;
+    }
 
 	float acceleration_limit = 1000;
 	
-	
+	volatile float wheel_speed=0;
 	// float delta_distance = distance;
 	// float wheel_speed = (position.speed(left_t)+position.speed(right_t))/2;
 	// float rotation_speed= pid_p * delta_distance+ pid_d * wheel_speed ;
 	float delta_distance = distance;
 //	float wheel_speed = (position.speed(left_t)+position.speed(right_t))/2;
-	float wheel_speed = ((speed[left_t]+speed[right_t])+(position.speed(left_t)+position.speed(right_t)))/4;
+	wheel_speed +=( ((speed[left_t]+speed[right_t])+(position.speed(left_t)+position.speed(right_t)))/4);
+//	wheel_speed +=( ((speed[left_t]+speed[right_t]))/2);
 	float rotation_speed= speed_max ;
 	if(delta_distance<0)
 		rotation_speed= -rotation_speed;
@@ -173,48 +213,46 @@ void Control::robot_go_distance(float distance, float ratio){
 	//for acceleration
 //	printf("go_dist %f %f %f\r\n",delta_distance,rotation_speed,ratio);
 	uint32_t temp_enc_time=enc_time_diff/10000;
-	if((rotation_speed - wheel_speed)*1000000/(float)robot_parameter.period()>accel_max)
+	if((rotation_speed - wheel_speed)*100000/(float)robot_parameter.period()>accel_max)
 	{
-		rotation_speed=accel_max*(float)robot_parameter.period()/1000000+wheel_speed;
+		rotation_speed=accel_max*(float)robot_parameter.period()/100000+wheel_speed;
 	}
-	else if((rotation_speed - wheel_speed)*1000000/(float)robot_parameter.period()<-accel_max)
+	else if((rotation_speed - wheel_speed)*100000/(float)robot_parameter.period()<-accel_max)
 	{
-		rotation_speed=-accel_max*(float)robot_parameter.period()/1000000+wheel_speed;
+		rotation_speed=-accel_max*(float)robot_parameter.period()/100000+wheel_speed;
 	}
 	//for deceleration
 	// if(rotation_speed>delta_distance*accel_max)
 
-    //décélération 40% plus lente
-    int accel_max_60=accel_max*0.2;
+    //décélération 20% plus lente
+    int accel_max_20=accel_max*1;
 
 	if(delta_distance>0)
 	{
-		if(rotation_speed>sqrt(2* delta_distance/accel_max_60) *accel_max_60)
+		if(rotation_speed>sqrt(2* delta_distance/accel_max_20) *accel_max_20)
 		{
-			rotation_speed=sqrt(2* delta_distance/accel_max_60)*accel_max_60;
+			rotation_speed=sqrt(2* delta_distance/accel_max_20)*accel_max_20;
 		}
-		if(-rotation_speed>sqrt(2* delta_distance/accel_max_60) *accel_max_60)
+		if(-rotation_speed>sqrt(2* delta_distance/accel_max_20) *accel_max_20)
 		{
-			rotation_speed=-sqrt(2* delta_distance/accel_max_60)*accel_max_60;
+			rotation_speed=-sqrt(2* delta_distance/accel_max_20)*accel_max_20;
 		}
 	}
 	else
 	{
-		if(rotation_speed>sqrt(2* -delta_distance/accel_max_60) *accel_max_60)
+		if(rotation_speed>sqrt(2* -delta_distance/accel_max_20) *accel_max_20)
 		{
-			rotation_speed=sqrt(2* -delta_distance/accel_max_60)*accel_max_60;
+			rotation_speed=sqrt(2* -delta_distance/accel_max_20)*accel_max_20;
 		}
-		if(-rotation_speed>sqrt(2* -delta_distance/accel_max_60) *accel_max_60)
+		if(-rotation_speed>sqrt(2* -delta_distance/accel_max_20) *accel_max_20)
 		{
-			rotation_speed=-sqrt(2* -delta_distance/accel_max_60)*accel_max_60;
+			rotation_speed=-sqrt(2* -delta_distance/accel_max_20)*accel_max_20;
 		}
 	} 
 	printf("go_dist %f %f %f\r\n",delta_distance,rotation_speed, ratio);
 	
 	
 	//set speed
-	float left_speed;
-	float right_speed;
 	if(ratio!=-1)
 	{
 		if(distance>0)
@@ -242,14 +280,32 @@ void Control::robot_go_distance(float distance, float ratio){
 	//check both wheels can be fast enough, else reduce both speeds
 	if(left_speed>speed_max || left_speed<-speed_max)
 	{
-		right_speed = right_speed *speed_max/left_speed;
-		left_speed = speed_max;
-	}
+		if(distance>0)
+		{
+            right_speed = right_speed *speed_max/left_speed;
+            left_speed = speed_max;
+        }
+		else
+		{
+            right_speed = -right_speed *speed_max/left_speed;
+            left_speed = -speed_max;
+
+		}
+    }
 	if(right_speed>speed_max || right_speed<-speed_max)
 	{
-		left_speed = left_speed *speed_max/right_speed;
-		right_speed = speed_max;
-	}
+		if(distance>0)
+		{
+            left_speed = left_speed *speed_max/right_speed;
+            right_speed = speed_max;
+        }
+		else
+		{
+            right_speed = -right_speed *speed_max/left_speed;
+            left_speed = -speed_max;
+
+		}
+    }
 	printf("will wheel speed  %f %f %\r\n",left_speed,right_speed);
 	set_speed(left_t , left_speed );	
 	set_speed(right_t , right_speed );
@@ -321,8 +377,7 @@ void Control::disable()
 
 void Control::distance_direct_arc( coordinates_t stop, float* distance, float* ratio,asserv_direction_t dir)
 {
-	
-//	printf("equivalent to going to %f %f %f \r\n",stop.x,stop.y,stop.theta);
+    printf("con dist dir %d",dir);
 	float theta_in,theta_side;
 	if(stop.y!=0)
 		theta_in = PI/2-atan(stop.x/stop.y);

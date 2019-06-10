@@ -19,6 +19,8 @@ class Control{
     
     public:
 	Control();
+	void get_pwm(float* l,float* r);
+	void get_speed(float* l,float* r);
 	void set_pid_dist(float arg1,float arg2,float arg3);
 	void set_pid_speed(float arg1,float arg2,float arg3);
     void run();
@@ -60,6 +62,8 @@ class Control{
 	float accel_max;
 	float rot_speed_max;
 	float rot_accel_max;
+	float left_speed;
+	float right_speed;
 
     
 };
